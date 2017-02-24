@@ -1,5 +1,7 @@
 package com.danenergy.protocol;
 
+import com.danenergy.common.ParserDefinition;
+
 /**
  * Created by Lior Gad on 2/13/2017.
  */

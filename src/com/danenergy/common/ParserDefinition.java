@@ -1,4 +1,4 @@
-package com.danenergy.protocol;
+package com.danenergy.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

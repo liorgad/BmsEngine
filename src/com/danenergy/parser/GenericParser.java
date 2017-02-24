@@ -1,7 +1,7 @@
 package com.danenergy.parser;
 
 import com.danenergy.common.Pair;
-import com.danenergy.protocol.ParserDefinition;
+import com.danenergy.common.ParserDefinition;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
