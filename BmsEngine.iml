@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" name="one.util:streamex:0.6.5" level="project" />
+    <orderEntry type="library" name="org.rxtx:rxtx:2.1.7" level="project" />
   </component>
 </module>

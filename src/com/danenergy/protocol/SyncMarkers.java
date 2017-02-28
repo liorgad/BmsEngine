@@ -18,13 +18,13 @@ public class SyncMarkers
 
     public static String SyncMessage(String message,char SOI,char EOI)
     {
-        int sIdx = message.charAt(SOI);
-        int eIdx = message.charAt(EOI);
+        int sIdx = message.indexOf(SOI);
+        int eIdx = message.indexOf(EOI);
         String result = "";
 
         if (sIdx < 0 && eIdx < 0)
         {
-            buffer.delete(0,buffer.length()-1);
+            buffer.setLength(0);
             return "";
         }
 
@@ -32,13 +32,13 @@ public class SyncMarkers
         {
             buffer.append(message.substring(0, eIdx + 1));
             result = buffer.toString();
-            buffer.delete(0,buffer.length()-1);
+            buffer.setLength(0);
             return result;
         }
 
         if(eIdx < 0 && sIdx >=0)
         {
-            buffer.delete(0,buffer.length()-1);
+            buffer.setLength(0);
             buffer.append(message.substring(sIdx));
             return "";
         }
@@ -51,12 +51,12 @@ public class SyncMarkers
                 result = buffer.toString();
             }
 
-            buffer.delete(0,buffer.length()-1);
+            buffer.setLength(0);
             buffer.append(message.substring(sIdx));
             return result;
         }
 
-        buffer.delete(0,buffer.length()-1);
+        buffer.setLength(0);
         return message.substring(sIdx, eIdx - sIdx +1);
     }
 }

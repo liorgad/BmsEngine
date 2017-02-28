@@ -11,8 +11,9 @@ import java.util.*;
  * Created by Lior Gad on 2/13/2017.
  */
 
-public class GenericParser {
-    private static List<Pair<String, ParserDefinition>> orderedList = null;
+public class GenericParser{
+
+    private static Map<String,List<Pair<String, ParserDefinition>>> typeMap = new HashMap<>(0);
 
     private static <T extends Object> void SetObject(T newObject, Field objectField, ParserDefinition value, Map<String, String> map) throws IllegalAccessException {
         if (objectField.getType() == (Byte.TYPE)) {
@@ -53,10 +54,12 @@ public class GenericParser {
 
     public static <T extends Object> T Parse(String data, Class<T> type) {
         try {
-            if (orderedList == null) {
-                orderedList = ExtractAndOrderFields(type);
+            if (!typeMap.containsKey(type.getName())) {
+
+                typeMap.put(type.getName(),ExtractAndOrderFields(type));
             }
 
+            List<Pair<String, ParserDefinition>> orderedList = typeMap.get(type.getName());
 
             for (Pair<String, ParserDefinition> p : orderedList) {
                 System.out.println(p.getKey() + " : " + p.getValue().Index() + "," + p.getValue().BytesLength());
@@ -64,7 +67,7 @@ public class GenericParser {
 
             Map<String, String> map = ParseASCIIHex(data, orderedList);
 
-            T newObject = (T) type.newInstance();
+            T newObject = type.newInstance();
 
             for (Pair<String, ParserDefinition> p : orderedList) {
                 Field objectField = type.getDeclaredField(p.getKey());
@@ -87,7 +90,7 @@ public class GenericParser {
                 mapToInt(p -> p.getValue().ASCIILength()).sum();
 
 
-        Map<String, String> fieldToBytesMap = new HashMap<String, String>();
+        Map<String, String> fieldToBytesMap = new HashMap<>();
 
         for (Pair<String, ParserDefinition> pair : orderedList) {
             String lengthField = pair.getValue().RelatedFieldLength();
@@ -121,10 +124,10 @@ public class GenericParser {
     }
 
     public static List<Pair<String, ParserDefinition>> ExtractAndOrderFields(Class type) {
-        List<Pair<String, ParserDefinition>> list = new LinkedList<Pair<String, ParserDefinition>>();
+        List<Pair<String, ParserDefinition>> list = new LinkedList<>();
 
         for (Field f : type.getFields()) {
-            list.add(new Pair<String, ParserDefinition>(f.getName(), f.getAnnotation(ParserDefinition.class)));
+            list.add(new Pair<>(f.getName(), f.getAnnotation(ParserDefinition.class)));
         }
 
         Collections.sort(list, new Comparator<Pair<String, ParserDefinition>>() {
@@ -150,9 +153,12 @@ public class GenericParser {
 
     public static <T extends Object> String Build(T obj, Class type) {
         try {
-            if (orderedList == null) {
-                orderedList = ExtractAndOrderFields(type);
+            if (!typeMap.containsKey(type.getName())) {
+
+                typeMap.put(type.getName(),ExtractAndOrderFields(type));
             }
+
+            List<Pair<String, ParserDefinition>> orderedList = typeMap.get(type.getName());
 
             List<String> resultList = new LinkedList<String>();
 

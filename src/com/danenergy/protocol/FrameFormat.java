@@ -6,62 +6,6 @@ import com.danenergy.common.ParserDefinition;
  * Created by Lior Gad on 2/13/2017.
  */
 
-enum Command
-{
-    ProtectionData(1),
-    RealTimeData(2),
-    DataSetting(5),
-    FETOperation(6),
-    Version(9);
-
-
-    private int value = 0;
-
-    Command(int value)
-    {
-        this.value = value;
-    }
-
-    public int getValue()
-    {
-        return this.value;
-    }
-}
-
-enum CommandResponse
-{
-    RealTimeData(0x82);
-
-    private int value=0;
-
-    CommandResponse(int value)
-    {
-        this.value = value;
-    }
-
-    public int getValue()
-    {
-        return this.value;
-    }
-}
-
-enum Version
-{
-    Version82(82);
-
-    private int value=0;
-
-    Version(int value)
-    {
-        this.value = value;
-    }
-
-    public int getValue()
-    {
-        return this.value;
-    }
-}
-
 public class FrameFormat {
 
     @ParserDefinition(Index = 0, BytesLength = 1, ASCIILength = 1)
@@ -92,6 +36,23 @@ public class FrameFormat {
     public static char EOI = '~';
 
     public FrameFormat() {
+    }
+
+    public static String CalculateCRC(String str)
+    {
+        //crc cala verification method (C language)
+        // i = length of string
+
+        char[] strAsChars = str.toCharArray();
+
+        byte sum = 0;
+
+        for (int i = 0; i < strAsChars.length; i++)
+        {
+            sum += (byte)strAsChars[i];
+        }
+
+        return String.format("%2X",(sum ^= 0xFF));
     }
 }
     /*    @Override
@@ -180,23 +141,8 @@ public class FrameFormat {
             }
 
             return -1;
-        }
+        }*/
 
-        public static string CalculateCRC(string str)
-        {
-            //crc cala verification method (C language)
-            // i = length of string
 
-            char[] strAsChars = str.ToCharArray();
 
-            byte sum = 0;
-
-            for (int i = 0; i < strAsChars.Length; i++)
-            {
-                sum += Convert.ToByte(strAsChars[i]);
-            }
-
-            return (sum ^= 0xFF).ToString("X2");
-        }
-        */
 
