@@ -1,4 +1,4 @@
-package com.danenergy.communications;
+package com.danenergy.common;
 
 
 

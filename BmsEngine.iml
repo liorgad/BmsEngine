@@ -10,5 +10,8 @@
     <orderEntry type="library" name="org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" name="one.util:streamex:0.6.5" level="project" />
     <orderEntry type="library" name="org.rxtx:rxtx:2.1.7" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.8.0" level="project" />
+    <orderEntry type="library" name="javax.validation:validation-api:1.1.0.Final" level="project" />
+    <orderEntry type="library" name="com.google.inject:guice:4.0" level="project" />
   </component>
 </module>

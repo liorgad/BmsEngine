@@ -16,44 +16,13 @@ public class EventQueue <T extends Object>
 
     Consumer<T> action;
 
-    //ExecutorService task;
+    ExecutorService task;
 
-    Thread th;
+    //Thread th;
 
     public EventQueue(Consumer<T> action)
     {
-        th = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (true) {
-                        addSignal.acquire();
-                        if (stop) {
-                            break;
-                        }
-
-                        if (!queue.isEmpty()) {
-                            T item = queue.poll();
-                            if (null != item) {
-                                action.accept(item);
-                            }
-                        }
-
-                    }
-                } catch (Exception e) {
-
-                }
-            }} );
-
-        this.action = action;
-        queue = new ConcurrentLinkedQueue<T>();
-        addSignal = new Semaphore(0);
-
-        th.start();
-
-//        task = Executors.newSingleThreadExecutor();
-//
-//        task.submit(new Runnable() {
+//        th = new Thread(new Runnable() {
 //            @Override
 //            public void run() {
 //                try {
@@ -74,8 +43,36 @@ public class EventQueue <T extends Object>
 //                } catch (Exception e) {
 //
 //                }
-//            }
-//        });
+//            }} );
+
+        this.action = action;
+        queue = new ConcurrentLinkedQueue<T>();
+        addSignal = new Semaphore(0);
+
+        //th.start();
+
+        task = Executors.newSingleThreadExecutor();
+
+        task.execute(() -> {
+            try {
+                while (true) {
+                    addSignal.acquire();
+                    if (stop) {
+                        break;
+                    }
+
+                    if (!queue.isEmpty()) {
+                        T item = queue.poll();
+                        if (null != item) {
+                            action.accept(item);
+                        }
+                    }
+
+                }
+            } catch (Exception e) {
+
+            }
+        });
 
     }
 
@@ -89,6 +86,7 @@ public class EventQueue <T extends Object>
     {
         stop = true;
         addSignal.release();
+        task.shutdown();
 
     }
 

@@ -1,13 +1,30 @@
 package com.danenergy.logic;
 
+import com.danenergy.common.ICommPort;
+import com.danenergy.configuration.Configuration;
+import com.danenergy.configuration.Data;
 import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.*;
+import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by Lior Gad on 2/28/2017.
  */
 public class MainLogic {
+
+
+    Configuration configuration;
+    Data data;
+    ICommPort commPort;
+
+    @Inject
+    public MainLogic(Configuration  conf,Data data,ICommPort commPort)
+    {
+        this.configuration = conf;
+        this.data = data;
+        this.commPort = commPort;
+    }
 
     public void handleParsing(String message)
     {
@@ -85,6 +102,6 @@ public class MainLogic {
 
     public void HandleRealtimeData(FrameFormat frameFormat,RealtimeData realtimeData)
     {
-
+        System.out.println(realtimeData.toString());
     }
 }
