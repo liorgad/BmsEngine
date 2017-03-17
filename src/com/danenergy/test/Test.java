@@ -44,11 +44,12 @@ public class Test
             e.printStackTrace();
         }
 
+
+
         Injector guice = Guice.createInjector(new MainLogicGuiceModule());
         MainLogic logic = guice.getInstance(MainLogic.class);
 
         logic.handleParsing(realTimeData82);
-
 
 
 //        String crc = FrameFormat.CalculateCRC("ABC");

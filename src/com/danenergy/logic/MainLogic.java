@@ -5,6 +5,7 @@ import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
 import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.*;
+import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,14 +17,18 @@ public class MainLogic {
 
     Configuration configuration;
     Data data;
-    ICommPort commPort;
+    ICommPort bmsCommPort;
+    ICommPort clientCommPort;
+    SimpleEventBus eventBus;
 
     @Inject
-    public MainLogic(Configuration  conf,Data data,ICommPort commPort)
+    public MainLogic(SimpleEventBus eventBus,Configuration  conf,Data data,ICommPort commPort,ICommPort client)
     {
+        this.eventBus = eventBus;
         this.configuration = conf;
         this.data = data;
-        this.commPort = commPort;
+        this.bmsCommPort = commPort;
+        this.clientCommPort = client;
     }
 
     public void handleParsing(String message)
