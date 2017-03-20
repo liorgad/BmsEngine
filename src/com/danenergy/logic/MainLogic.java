@@ -1,6 +1,6 @@
 package com.danenergy.logic;
 
-import com.danenergy.common.ICommPort;
+import com.danenergy.common.IPlugin;
 import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
 import com.danenergy.parser.GenericParser;
@@ -8,6 +8,8 @@ import com.danenergy.protocol.*;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Set;
 
 /**
  * Created by Lior Gad on 2/28/2017.
@@ -17,18 +19,25 @@ public class MainLogic {
 
     Configuration configuration;
     Data data;
-    ICommPort bmsCommPort;
-    ICommPort clientCommPort;
     SimpleEventBus eventBus;
+    Set<IPlugin> plugins;
 
     @Inject
-    public MainLogic(SimpleEventBus eventBus,Configuration  conf,Data data,ICommPort commPort,ICommPort client)
+    public MainLogic(SimpleEventBus eventBus,Configuration  conf,Data data,Set<IPlugin> plugins)
     {
         this.eventBus = eventBus;
         this.configuration = conf;
         this.data = data;
-        this.bmsCommPort = commPort;
-        this.clientCommPort = client;
+        this.plugins = plugins;
+    }
+
+    public void start()
+    {
+        System.out.println("MainLogic Started");
+        for(IPlugin plgn : plugins)
+        {
+            plgn.Start();
+        }
     }
 
     public void handleParsing(String message)

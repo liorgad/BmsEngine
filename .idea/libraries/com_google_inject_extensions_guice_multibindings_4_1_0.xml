@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="com.google.inject.extensions:guice-multibindings:4.1.0" type="repository">
+    <properties maven-id="com.google.inject.extensions:guice-multibindings:4.1.0" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/guice-multibindings-4.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/guice-4.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javax.inject-1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/aopalliance-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/guava-19.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
