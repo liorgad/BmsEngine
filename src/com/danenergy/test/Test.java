@@ -2,10 +2,14 @@ package com.danenergy.test;
 
 import com.danenergy.Inject.MainLogicGuiceModule;
 import com.danenergy.common.EventQueue;
+import com.danenergy.configuration.Configuration;
 import com.danenergy.logic.MainLogic;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 /**
@@ -13,23 +17,9 @@ import java.io.IOException;
  */
 public class Test
 {
-    public static void main(String[] args)
+    static final String realTimeData82 = ":038252007E000000000000001DA7040EC90EC30EEE0ED500000000053D3E3E3D3D00000000000000000F00000000000000000000000000014601A402BC1D~";
+    static void TestEventQueue()
     {
-        String realTimeData82 = ":038252007E000000000000001DA7040EC90EC30EEE0ED500000000053D3E3E3D3D00000000000000000F00000000000000000000000000014601A402BC1D~";
-//        Gson gson = new Gson();
-//        BufferedReader br = null;
-//        Configuration conf = null;
-//
-//        try
-//        {
-//            br = new BufferedReader(new FileReader("C:\\Users\\Lior Gad\\IdeaProjects\\BmsEngine\\src\\com\\danenergy\\test\\configuration.json"));
-//            conf = gson.fromJson(br,Configuration.class);
-//        }
-//        catch(Exception e)
-//        {
-//            System.out.println(e.getMessage());
-//        }
-
         EventQueue myQ = new EventQueue<String>(str -> System.out.println(str));
 
         myQ.add("1");
@@ -43,14 +33,10 @@ public class Test
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
-        Injector guice = Guice.createInjector(new MainLogicGuiceModule());
-        MainLogic logic = guice.getInstance(MainLogic.class);
-
-        logic.handleParsing(realTimeData82);
-
+    }
+    public static void main(String[] args)
+    {
+        TestInject();
 
 //        String crc = FrameFormat.CalculateCRC("ABC");
 //
@@ -84,11 +70,15 @@ public class Test
 //
 //        RealtimeData rt= (RealtimeData)GenericParser.Parse(frameFormat.Data,RealtimeData.class);
 
+    }
 
+    private static void TestInject() {
+        Injector guice = Guice.createInjector(new MainLogicGuiceModule());
+        MainLogic logic = guice.getInstance(MainLogic.class);
 
+        logic.start();
 
-
-
+        logic.handleParsing(realTimeData82);
 
         try
         {
@@ -98,8 +88,21 @@ public class Test
         {
 
         }
+    }
 
+    private static void TestGson() {
+        Gson gson = new Gson();
+        BufferedReader br = null;
+        Configuration conf = null;
 
-
+        try
+        {
+            br = new BufferedReader(new FileReader("C:\\Users\\Lior Gad\\IdeaProjects\\BmsEngine\\src\\com\\danenergy\\test\\configuration.json"));
+            conf = gson.fromJson(br,Configuration.class);
+        }
+        catch(Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.danenergy.communications;
 
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
+import com.danenergy.configuration.Configuration;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 
@@ -14,7 +15,7 @@ public class ServerManager implements IPlugin {
     ICommPort commPort;
 
     @Inject
-    public ServerManager(EventBus eventBus,ICommPort commPort) {
+    public ServerManager(EventBus eventBus,ICommPort commPort,Configuration config) {
         this.eventBus = eventBus;
         this.commPort = commPort;
 

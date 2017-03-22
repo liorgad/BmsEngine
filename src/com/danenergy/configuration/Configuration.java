@@ -2,17 +2,22 @@
 
 package com.danenergy.configuration;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.google.inject.Singleton;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.Serializable;
 
+@Singleton
 public class Configuration implements Serializable
 {
-
     @SerializedName("PortName")
     @Expose
     private String portName;
@@ -56,6 +61,7 @@ public class Configuration implements Serializable
      *
      */
     public Configuration() {
+        Load();
     }
 
     /**
@@ -243,6 +249,23 @@ public class Configuration implements Serializable
     public Configuration withCurrentThreashold(Double currentThreashold) {
         this.currentThreashold = currentThreashold;
         return this;
+    }
+
+    public void Load()
+    {
+        Gson gson = new Gson();
+        BufferedReader br = null;
+        Configuration conf = null;
+
+        try
+        {
+            br = new BufferedReader(new FileReader("configuration.json"));
+            conf = gson.fromJson(br,Configuration.class);
+        }
+        catch(Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
