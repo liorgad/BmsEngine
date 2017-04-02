@@ -1,6 +1,9 @@
 package com.danenergy.protocol;
 
 import com.danenergy.common.ParserDefinition;
+import com.danenergy.parser.GenericParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Created by Lior Gad on 2/22/2017.
@@ -98,16 +101,17 @@ public class RealtimeData
     @Override
     public String toString()
     {
-//            String tempStr = (String) GenericParser.Build<RealtimeDataMap_V82>(this);
-//
-//            if (StringUtils.isEmpty(tempStr))
-//            {
-//                return null;
-//            }
-//
-//            return tempStr;
+        return ToStringBuilder.reflectionToString(this);    }
 
-        return "";
+    public String Serialize()
+    {
+        String result = GenericParser.Build(this, RealtimeData.class);
+
+        if (StringUtils.isEmpty(result))
+        {
+            return null;
+        }
+        return result;
     }
 
 }

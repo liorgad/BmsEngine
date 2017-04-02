@@ -1,6 +1,15 @@
 package com.danenergy.protocol;
 
+import com.danenergy.common.Pair;
 import com.danenergy.common.ParserDefinition;
+import com.danenergy.parser.GenericParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import sun.java2d.loops.GeneralRenderer;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Lior Gad on 2/13/2017.
@@ -52,96 +61,104 @@ public class FrameFormat {
             sum += (byte)strAsChars[i];
         }
 
-        return String.format("%2X",(sum ^= 0xFF));
+        return String.format("%02X",(sum ^= 0xFF));
     }
-}
-    /*    @Override
-        public String ToString()
+
+    public int CalculateLength()
     {
-        int length = CalculateLength();
+        try
+        {
+            List<Pair<String, ParserDefinition>> orderedProperties = GenericParser.ExtractAndOrderFields(this.getClass());
 
-        Length = Convert.ToUInt16(length);
+            if (null == orderedProperties)
+            {
+                return -1;
+            }
 
-        string tempStr = (string)GenericParser.Build<FrameFormat>(this);
+            int totalKnownLength = orderedProperties.stream().
+                    filter(p -> p.getValue().ASCIILength() != 0).
+                    mapToInt(p -> p.getValue().ASCIILength()).sum();
 
-        if (string.IsNullOrWhiteSpace(tempStr))
+
+            int totalLength = 0;
+
+            for (Pair<String, ParserDefinition> item : orderedProperties)
+            {
+
+                String lengthProp = item.getValue().RelatedFieldLength();
+
+
+                int length = item.getValue().ASCIILength();
+
+                Field objectField = this.getClass().getDeclaredField(item.getKey());
+
+                if (StringUtils.isNotEmpty(lengthProp))
+                {
+                    if (length == -1)
+                    {
+                        if(objectField.getType().isArray())
+                        //if (item.getValue().PropertyType.IsArray)
+                        {
+                            ArrayList arr = (ArrayList)objectField.get(this);
+                            //Array arr = (Array)item.GetValue(this);
+                            totalLength += arr.size();
+                        }
+                        else if (objectField.getType() == String.class)
+                        {
+                            String str = (String)objectField.get(this);
+                            if (StringUtils.isNotEmpty(str))
+                            {
+                                totalLength += str.length();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    totalLength += length;
+                }
+            }
+
+            return totalLength;
+
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+
+        return -1;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    public String serialize()
+    {
+        Length = CalculateLength();
+
+        String tempStr = GenericParser.Build(this,FrameFormat.class);
+
+        if (StringUtils.isEmpty(tempStr))
         {
             return null;
         }
 
-        var subStr = tempStr.TrimStart(new char[] { SOI }).TrimEnd(new char[] { EOI });
+        String cmdSub = tempStr.substring(1, tempStr.length() - 3);
 
-        subStr = subStr.Substring(0, subStr.Length - 2);
+        String crc = FrameFormat.CalculateCRC(cmdSub);
 
-        var crc = CalculateCRC(subStr);
-
-        var result = string.Format("{0}{1}{2}{3}", SOI, subStr, crc, EOI);
-
-
+        String result = FrameFormat.SOI + cmdSub + crc + FrameFormat.EOI;
 
         return result;
     }
-
-        public int CalculateLength()
-        {
-            try
-            {
-                var properties = this.GetType().GetProperties().Where(prop => prop.IsDefined(typeof(ParserDefinitionAttribute), false));
-
-                if (null == properties)
-                {
-                    return -1;
-                }
-
-                var orderedProperties = properties.OrderBy(p => ((ParserDefinitionAttribute)p.GetCustomAttribute(typeof(ParserDefinitionAttribute))).Index);
+}
 
 
-                if (null == orderedProperties)
-                {
-                    return -1;
-                }
 
-                int totalLength = 0;
 
-                foreach (var item in orderedProperties)
-                {
-                    var lengthProp = item.GetCustomAttribute<ParserDefinitionAttribute>().DynamicLength;
-                    var length = item.GetCustomAttribute<ParserDefinitionAttribute>().Length;
-                    if (!string.IsNullOrWhiteSpace(lengthProp))
-                    {
-                        if (length == -1)
-                        {
-                            if (item.PropertyType.IsArray)
-                            {
-                                Array arr = (Array)item.GetValue(this);
-                                totalLength += arr.Length;
-                            }
-                            else if (item.PropertyType == typeof(string))
-                            {
-                                string str = (string)item.GetValue(this);
-                                if (!string.IsNullOrWhiteSpace(str))
-                                {
-                                    totalLength += str.Length;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        totalLength += length;
-                    }
-                }
-
-                return totalLength;
-
-            }
-            catch (Exception e)
-            {
-                logger.Error(e, "Error calculating length");
-            }
-
-            return -1;
-        }*/
 
 
 

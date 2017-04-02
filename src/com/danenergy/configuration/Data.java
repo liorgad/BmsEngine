@@ -1,5 +1,6 @@
 package com.danenergy.configuration;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -7,12 +8,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.validation.Valid;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.Serializable;
 import java.util.List;
 
 public class Data implements Serializable
 {
-
+    public  static Data data = null;
     @SerializedName("HasCluster")
     @Expose
     private Boolean hasCluster;
@@ -142,6 +145,27 @@ public class Data implements Serializable
         }
         Data rhs = ((Data) other);
         return new EqualsBuilder().append(hasCluster, rhs.hasCluster).append(isParallel, rhs.isParallel).append(definedAddresses, rhs.definedAddresses).append(group1, rhs.group1).append(group2, rhs.group2).isEquals();
+    }
+
+    public static Data Load()
+    {
+        Gson gson = new Gson();
+        BufferedReader br = null;
+
+        if(data == null)
+        {
+            try
+            {
+                br = new BufferedReader(new FileReader("C:\\Users\\dev\\IdeaProjects\\BmsEngine\\src\\data.json"));
+                data = gson.fromJson(br,Data.class);
+            }
+            catch(Exception e)
+            {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        return data;
     }
 
 }

@@ -1,10 +1,14 @@
 package com.danenergy.logic;
 
+import com.danenergy.EventBusMessages.IncommingBmsData;
+import com.danenergy.common.EventQueue;
 import com.danenergy.common.IPlugin;
 import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
 import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.*;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -19,21 +23,32 @@ public class MainLogic {
 
     Configuration configuration;
     Data data;
-    SimpleEventBus eventBus;
+    EventBus eventBus;
+    EventQueue<String> fromBmsDataEvQ;
     Set<IPlugin> plugins;
 
     @Inject
-    public MainLogic(SimpleEventBus eventBus,Configuration  conf,Data data,Set<IPlugin> plugins)
+    public MainLogic(EventBus eventBus,Configuration  conf,Data data,Set<IPlugin> plugins)
     {
         this.eventBus = eventBus;
         this.configuration = conf;
         this.data = data;
         this.plugins = plugins;
+
+        fromBmsDataEvQ = new EventQueue<>( (s) ->
+        {
+            System.out.println("MainLogic: fromBmsDataEvQ");
+            this.handleParsing(s);
+        });
+
+
+        eventBus.register(this);
     }
 
     public void start()
     {
         System.out.println("MainLogic Started");
+
         for(IPlugin plgn : plugins)
         {
             plgn.Start();
@@ -116,6 +131,14 @@ public class MainLogic {
 
     public void HandleRealtimeData(FrameFormat frameFormat,RealtimeData realtimeData)
     {
-        System.out.println(realtimeData.toString());
+        System.out.println("MainLogic: HandleRealtimeData - parsed FrameFormat: " + frameFormat.toString());
+        System.out.println("MainLogic: HandleRealtimeData - parsed RealtimeData: " + realtimeData.toString());
+    }
+
+    @Subscribe
+    public void HandleIncommingBmsData(IncommingBmsData data)
+    {
+        System.out.println("MainLogic: handling " + data.data);
+        fromBmsDataEvQ.add(data.data);
     }
 }

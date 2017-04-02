@@ -1,12 +1,22 @@
 package com.danenergy.test;
 
+import com.danenergy.EventBusMessages.IncommingBmsData;
 import com.danenergy.Inject.MainLogicGuiceModule;
 import com.danenergy.common.EventQueue;
+import com.danenergy.common.ICommPort;
+import com.danenergy.communications.ServerManager;
 import com.danenergy.configuration.Configuration;
+import com.danenergy.configuration.Data;
 import com.danenergy.logic.MainLogic;
+import com.danenergy.parser.GenericParser;
+import com.danenergy.protocol.Command;
+import com.danenergy.protocol.FrameFormat;
+import com.danenergy.protocol.Version;
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sun.corba.se.spi.activation.Server;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -36,6 +46,12 @@ public class Test
     }
     public static void main(String[] args)
     {
+        //TestTcpClient();
+
+        //TestCalculateLength();
+
+        //TestEventBus();
+        
         TestInject();
 
 //        String crc = FrameFormat.CalculateCRC("ABC");
@@ -72,13 +88,57 @@ public class Test
 
     }
 
+    private static void TestEventBus() {
+
+
+        EventBus eb = new EventBus();
+        ICommPort cp = new TestComm();
+        ServerManager sm = new ServerManager(eb,cp);
+        MainLogic ml = new MainLogic(eb,null, Data.Load(),null);
+
+        IncommingBmsData in = new IncommingBmsData();
+        in.data = "TEST";
+
+        sm.publishIncomingData(in);
+
+        try {
+            System.in.read();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    private static void TestCalculateLength() {
+        FrameFormat ff = new FrameFormat();
+        ff.Address = Short.parseShort("5");
+        ff.Cmd = (short) Command.RealTimeData.getValue();
+        ff.Version = (short) Version.Version82.getValue();
+
+        ff.Length = ff.CalculateLength();
+
+        String cmd = GenericParser.Build(ff, FrameFormat.class);
+
+        String cmdSub = cmd.substring(1,cmd.length()-3);
+
+        String crc = FrameFormat.CalculateCRC(cmdSub);
+
+        String finalCmd = FrameFormat.SOI + cmdSub + crc + FrameFormat.EOI;
+    }
+
+    private static void TestTcpClient() {
+        ICommPort comm = new TestComm();
+
+        comm.sendReceive(":050252000E00~");
+    }
+
     private static void TestInject() {
         Injector guice = Guice.createInjector(new MainLogicGuiceModule());
         MainLogic logic = guice.getInstance(MainLogic.class);
-
         logic.start();
 
-        logic.handleParsing(realTimeData82);
+        //logic.handleParsing(realTimeData82);
 
         try
         {
