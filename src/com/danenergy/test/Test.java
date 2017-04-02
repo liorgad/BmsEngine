@@ -1,12 +1,13 @@
 package com.danenergy.test;
 
 import com.danenergy.Inject.MainLogicGuiceModule;
-import com.danenergy.common.EventQueue;
+import com.danenergy.Inject.ServerManagerPluginModule;
 import com.danenergy.logic.MainLogic;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Lior Gad on 2/13/2017.
@@ -30,26 +31,43 @@ public class Test
 //            System.out.println(e.getMessage());
 //        }
 
-        EventQueue myQ = new EventQueue<String>(str -> System.out.println(str));
+//        EventQueue myQ = new EventQueue<String>(str -> System.out.println(str));
+//
+//        myQ.add("1");
+//        myQ.add("1");
+//        myQ.add("2");
+//        myQ.add("1");
+//        myQ.add("5");
+//
+//        try {
+//            System.in.read();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
-        myQ.add("1");
-        myQ.add("1");
-        myQ.add("2");
-        myQ.add("1");
-        myQ.add("5");
 
-        try {
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        Injector guice = Guice.createInjector(new MainLogicGuiceModule(),new ServerManagerPluginModule());
+        MainLogic logic = guice.getInstance(MainLogic.class);
+
+        try
+        {
+            Executor task = Executors.newSingleThreadExecutor();
+
+            task.execute(() -> logic.start());
+
+            Thread.currentThread().join();
+
+            byte[] b = new byte[256];
+            System.in.read(b);
+        }
+        catch (Exception e)
+        {
+
         }
 
 
-
-        Injector guice = Guice.createInjector(new MainLogicGuiceModule());
-        MainLogic logic = guice.getInstance(MainLogic.class);
-
-        logic.handleParsing(realTimeData82);
+        //logic.handleParsing(realTimeData82);
 
 
 //        String crc = FrameFormat.CalculateCRC("ABC");
@@ -83,23 +101,5 @@ public class Test
 //        String ff = GenericParser.Build(frameFormat,FrameFormat.class);
 //
 //        RealtimeData rt= (RealtimeData)GenericParser.Parse(frameFormat.Data,RealtimeData.class);
-
-
-
-
-
-
-
-        try
-        {
-            System.in.read();
-        }
-        catch (Exception e)
-        {
-
-        }
-
-
-
     }
 }
