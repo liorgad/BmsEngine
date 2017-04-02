@@ -13,7 +13,7 @@ import java.util.*;
 
 public class GenericParser{
 
-    private static Map<String,List<Pair<String, ParserDefinition>>> typeMap = new HashMap<>(0);
+    public static Map<String,List<Pair<String, ParserDefinition>>> typeMap = new HashMap<>(0);
 
     private static <T extends Object> void SetObject(T newObject, Field objectField, ParserDefinition value, Map<String, String> map) throws IllegalAccessException {
         if (objectField.getType() == (Byte.TYPE)) {
