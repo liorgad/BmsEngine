@@ -1,5 +1,8 @@
 package com.danenergy.configuration;
 
+import com.danenergy.dataObjects.Battery;
+import com.danenergy.dataObjects.Cluster;
+import com.danenergy.dataObjects.Parallel;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -9,8 +12,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.validation.Valid;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Data implements Serializable
@@ -35,6 +40,10 @@ public class Data implements Serializable
     @Valid
     private List<String> group2 = null;
     private final static long serialVersionUID = -748666285434818178L;
+
+
+    private Cluster cluster;
+
 
     /**
      * No args constructor for use in serialization
@@ -125,6 +134,8 @@ public class Data implements Serializable
         return this;
     }
 
+    public Cluster getCluster() {return cluster;}
+
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
@@ -156,8 +167,39 @@ public class Data implements Serializable
         {
             try
             {
-                br = new BufferedReader(new FileReader("C:\\Users\\Lior Gad\\IdeaProjects\\BmsEngine\\src\\data.json"));
+                br = new BufferedReader(new FileReader("data.json"));
                 data = gson.fromJson(br,Data.class);
+
+                if(data.hasCluster)
+                {
+                    List<Battery> bl1 = new LinkedList<>();
+                    data.getGroup1().stream().
+                    map(s ->
+                    {
+                        Battery b = new Battery();
+                        b.setAddress(Short.parseShort(s));
+                        return b;
+                    }).forEach(b -> bl1.add(b));
+
+                    List<Battery> bl2 = new LinkedList<>();
+                    data.getGroup2().stream().
+                            map(s ->
+                            {
+                                Battery b = new Battery();
+                                b.setAddress(Short.parseShort(s));
+                                return b;
+                            }).forEach(b -> bl2.add(b));
+
+                    Parallel p1 = new Parallel(bl1);
+                    Parallel p2 = new Parallel(bl2);
+
+                    List<Parallel> parallelList = new LinkedList<>();
+                    parallelList.add(p1);
+                    parallelList.add(p2);
+
+                    data.cluster = new Cluster(parallelList);
+                }
+
             }
             catch(Exception e)
             {

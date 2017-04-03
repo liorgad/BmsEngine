@@ -52,7 +52,9 @@ public class Test
 
         //TestEventBus();
         
-        TestInject();
+        //TestInject();
+
+        TestDataLoad();
 
 //        String crc = FrameFormat.CalculateCRC("ABC");
 //
@@ -88,26 +90,31 @@ public class Test
 
     }
 
+    public static void TestDataLoad()
+    {
+        Data d = Data.Load();
+    }
+
     private static void TestEventBus() {
 
 
-        EventBus eb = new EventBus();
-        ICommPort cp = new TestComm();
-        ServerManager sm = new ServerManager(eb,cp);
-        MainLogic ml = new MainLogic(eb,null, Data.Load(),null);
-
-        IncommingBmsData in = new IncommingBmsData();
-        in.data = "TEST";
-
-        sm.publishIncomingData(in);
-
-        try {
-            System.in.read();
-        }
-        catch (Exception e)
-        {
-
-        }
+//        EventBus eb = new EventBus();
+//        ICommPort cp = new TestComm();
+//        ServerManager sm = new ServerManager();
+//        MainLogic ml = new MainLogic(eb,null, Data.Load(),null);
+//
+//        IncommingBmsData in = new IncommingBmsData();
+//        in.data = "TEST";
+//
+//        sm.publishIncomingData(in);
+//
+//        try {
+//            System.in.read();
+//        }
+//        catch (Exception e)
+//        {
+//
+//        }
     }
 
     private static void TestCalculateLength() {

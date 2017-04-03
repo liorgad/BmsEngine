@@ -1,9 +1,12 @@
-package com.danenergy.DadtaObjects;
+package com.danenergy.dataObjects;
 
+import com.danenergy.protocol.RealtimeData;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.io.Serializable;
-
-public class Cluster implements Serializable {
+/**
+ * Created by dev on 03/04/2017.
+ */
+public abstract class BatteryBase {
     double voltage;
     double temperature;
     double current;
@@ -48,5 +51,16 @@ public class Cluster implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public abstract void Update();
+
+    public abstract RealtimeData getRtData(short address);
+
+    public abstract void setRtData(short address, RealtimeData rtData);
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

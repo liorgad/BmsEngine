@@ -9,7 +9,6 @@ import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.*;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,17 +21,17 @@ public class MainLogic {
 
 
     Configuration configuration;
-    Data data;
+    Data sharedData;
     EventBus eventBus;
     EventQueue<String> fromBmsDataEvQ;
     Set<IPlugin> plugins;
 
     @Inject
-    public MainLogic(EventBus eventBus,Configuration  conf,Data data,Set<IPlugin> plugins)
+    public MainLogic(EventBus eventBus,Configuration  conf,Data sharedData,Set<IPlugin> plugins)
     {
         this.eventBus = eventBus;
         this.configuration = conf;
-        this.data = data;
+        this.sharedData = sharedData;
         this.plugins = plugins;
 
         fromBmsDataEvQ = new EventQueue<>( (s) ->
@@ -133,6 +132,11 @@ public class MainLogic {
     {
         System.out.println("MainLogic: HandleRealtimeData - parsed FrameFormat: " + frameFormat.toString());
         System.out.println("MainLogic: HandleRealtimeData - parsed RealtimeData: " + realtimeData.toString());
+
+        sharedData.getCluster().setRtData(frameFormat.Address,realtimeData);
+        sharedData.getCluster().Update();
+
+
     }
 
     @Subscribe

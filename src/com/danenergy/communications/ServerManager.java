@@ -3,7 +3,6 @@ package com.danenergy.communications;
 import com.danenergy.EventBusMessages.IncommingBmsData;
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
-import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
 import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.Command;
@@ -11,8 +10,8 @@ import com.danenergy.protocol.FrameFormat;
 import com.danenergy.protocol.Version;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 
-import java.awt.*;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,13 +25,13 @@ public class ServerManager implements IPlugin {
     EventBus eventBus;
     ICommPort commPort;
     Timer timer;
-    Data data;
+    Data sharedData;
 
     @Inject
-    public ServerManager(EventBus eventBus,ICommPort commPort) {
+    public ServerManager(EventBus eventBus,ICommPort commPort,Data sharedData) {
         this.eventBus = eventBus;
         this.commPort = commPort;
-        this.data = Data.Load();
+        this.sharedData = sharedData;
     }
 
     @Override
@@ -53,7 +52,7 @@ public class ServerManager implements IPlugin {
 
                     //assuming it takes 2 secs to complete the task
                     //Thread.sleep(2000);
-                    data.getDefinedAddresses().stream().forEach(new Consumer<String>() {
+                    sharedData.getDefinedAddresses().stream().forEach(new Consumer<String>() {
                         @Override
                         public void accept(String s) {
 
@@ -71,11 +70,21 @@ public class ServerManager implements IPlugin {
 
                             String finalCmd = FrameFormat.SOI + cmdSub + crc + FrameFormat.EOI;
 
+                            if(!commPort.isOpen())
+                            {
+                                return;
+                            }
+
                             System.out.println("Sending " + finalCmd);
 
                             String result = commPort.sendReceive(finalCmd);
 
                             System.out.println("Received " + result);
+
+                            if(StringUtils.isEmpty(result))
+                            {
+                                return;
+                            }
 
                             IncommingBmsData inData = new IncommingBmsData();
                             inData.data = result;
