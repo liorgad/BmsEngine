@@ -156,7 +156,7 @@ public class Data implements Serializable
         {
             try
             {
-                br = new BufferedReader(new FileReader("C:\\Users\\dev\\IdeaProjects\\BmsEngine\\src\\data.json"));
+                br = new BufferedReader(new FileReader("C:\\Users\\Lior Gad\\IdeaProjects\\BmsEngine\\src\\data.json"));
                 data = gson.fromJson(br,Data.class);
             }
             catch(Exception e)

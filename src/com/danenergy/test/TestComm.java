@@ -43,7 +43,7 @@ public class TestComm implements ICommPort {
             String sentence = data;
             String modifiedSentence;
             //BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            Socket clientSocket = new Socket("192.168.10.16", 11000);
+            Socket clientSocket = new Socket("10.0.0.7", 11000);
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             //sentence = inFromUser.readLine();
