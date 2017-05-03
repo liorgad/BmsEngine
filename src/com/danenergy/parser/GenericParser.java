@@ -3,6 +3,7 @@ package com.danenergy.parser;
 import com.danenergy.common.Pair;
 import com.danenergy.common.ParserDefinition;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -12,6 +13,8 @@ import java.util.*;
  */
 
 public class GenericParser{
+    //logging
+    final static Logger logger = Logger.getLogger(GenericParser.class);
 
     public static Map<String,List<Pair<String, ParserDefinition>>> typeMap = new HashMap<>(0);
 
@@ -61,9 +64,9 @@ public class GenericParser{
 
             List<Pair<String, ParserDefinition>> orderedList = typeMap.get(type.getName());
 
-            for (Pair<String, ParserDefinition> p : orderedList) {
-                System.out.println(p.getKey() + " : " + p.getValue().Index() + "," + p.getValue().BytesLength());
-            }
+//            for (Pair<String, ParserDefinition> p : orderedList) {
+//                logger.info(p.getKey() + " : " + p.getValue().Index() + "," + p.getValue().BytesLength());
+//            }
 
             Map<String, String> map = ParseASCIIHex(data, orderedList);
 
@@ -77,7 +80,7 @@ public class GenericParser{
 
             return newObject;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.info(e.getMessage());
         }
 
         return null;

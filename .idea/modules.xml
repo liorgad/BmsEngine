@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BmsEngine.iml" filepath="$PROJECT_DIR$/BmsEngine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Common/Common.iml" filepath="$PROJECT_DIR$/Common/Common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Dashboard/Dashboard.iml" filepath="$PROJECT_DIR$/Dashboard/Dashboard.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../HttpServer/HttpServer.iml" filepath="$PROJECT_DIR$/../HttpServer/HttpServer.iml" />
     </modules>
   </component>
 </project>

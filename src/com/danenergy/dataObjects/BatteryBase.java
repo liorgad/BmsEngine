@@ -1,17 +1,28 @@
 package com.danenergy.dataObjects;
 
 import com.danenergy.protocol.RealtimeData;
+import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Created by dev on 03/04/2017.
  */
 public abstract class BatteryBase {
-    double voltage;
-    double temperature;
-    double current;
-    short stateOfCharge;
-    String status;
+
+    @Expose
+    protected  double voltage;
+
+    @Expose
+    protected double temperature;
+
+    @Expose
+    protected double current;
+
+    @Expose
+    protected short stateOfCharge;
+
+    @Expose
+    protected String status;
 
     public double getVoltage() {
         return voltage;

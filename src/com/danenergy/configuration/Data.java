@@ -12,7 +12,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.validation.Valid;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -167,7 +166,7 @@ public class Data implements Serializable
         {
             try
             {
-                br = new BufferedReader(new FileReader("data.json"));
+                br = new BufferedReader(new FileReader("resources/data.json"));
                 data = gson.fromJson(br,Data.class);
 
                 if(data.hasCluster)

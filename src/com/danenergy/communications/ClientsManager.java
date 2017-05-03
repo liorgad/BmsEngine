@@ -1,8 +1,11 @@
 package com.danenergy.communications;
 
+import com.danenergy.HttpServer;
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
 import com.google.common.eventbus.EventBus;
+import fi.iki.elonen.NanoHTTPD;
+import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -12,42 +15,47 @@ import java.util.Map;
  * Created by Lior Gad on 3/20/2017.
  */
 public class ClientsManager implements IPlugin{
+    //logging
+    final static Logger logger = Logger.getLogger(ClientsManager.class);
 
     EventBus eventBus;
-    Map<String,ICommPort> clientsMap;
+    //Map<String,HttpServer> clientsMap;
+    HttpServer server;
 
     @Inject
-    public ClientsManager(EventBus eventBus) {
+    public ClientsManager(EventBus eventBus,HttpServer server) {
 
         this.eventBus = eventBus;
-        this.clientsMap = new HashMap<>();
+        //this.clientsMap = new HashMap<>();
+        this.server = server;
     }
 
     @Override
     public void Start() {
-        System.out.println("ClientManager started");
+        logger.info("ClientManager started");
+        //server.Start();
     }
 
     @Override
     public void Stop() {
-        System.out.println("ClientManager stopped");
+        logger.info("ClientManager stopped");
     }
 
     @Override
     public void Dispose() {
-        System.out.println("ClientManager disposeed");
+        logger.info("ClientManager disposeed");
 
     }
 
-    public void AddClient(String clientUid,ICommPort commPort){
-        if(null==clientsMap )
-        {
-            throw new NullPointerException("clients map null");
-        }
-        if(!clientsMap.containsKey(clientUid))
-        {
-            clientsMap.put(clientUid,commPort);
-        }
-    }
+//    public void AddClient(String clientUid,ICommPort commPort){
+//        if(null==clientsMap )
+//        {
+//            throw new NullPointerException("clients map null");
+//        }
+//        if(!clientsMap.containsKey(clientUid))
+//        {
+//            clientsMap.put(clientUid,commPort);
+//        }
+//    }
 
 }

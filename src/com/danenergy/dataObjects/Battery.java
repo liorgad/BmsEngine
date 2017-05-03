@@ -55,7 +55,9 @@ public class Battery extends  BatteryBase implements Serializable{
         setCurrent(current);
 
         int temp =  Arrays.stream(ArrayUtils.ConvertToIntArray(rtData.Temp)).max().getAsInt();
-        setTemperature(temp);
+        setTemperature(temp-40);
+
+        setStateOfCharge(rtData.SOC);
     }
 
     @Override

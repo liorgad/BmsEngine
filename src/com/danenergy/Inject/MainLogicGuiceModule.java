@@ -1,12 +1,11 @@
 package com.danenergy.Inject;
 
+import com.danenergy.HttpServer;
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
 import com.danenergy.communications.ClientsManager;
 import com.danenergy.communications.ServerManager;
-import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
-import com.danenergy.test.PluginTest;
 import com.danenergy.test.TestComm;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.TypeLiteral;
@@ -38,8 +37,10 @@ public class MainLogicGuiceModule extends com.google.inject.AbstractModule{
         });
         bind(Data.class).toInstance(sharedData);
         bind(ICommPort.class).to(TestComm.class);
+        //bind(ICommPort.class).to(HttpServer.class);
         Multibinder<IPlugin> binder = Multibinder.newSetBinder(binder(),IPlugin.class);
         binder.addBinding().to(ServerManager.class);
         binder.addBinding().to(ClientsManager.class);
+        binder.addBinding().to(HttpServer.class);
     }
 }

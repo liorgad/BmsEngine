@@ -1,6 +1,8 @@
 package com.danenergy.logic;
 
-import com.danenergy.EventBusMessages.IncommingBmsData;
+import com.danenergy.common.EventBusMessages.ClusterUpdatedMessage;
+import com.danenergy.common.EventBusMessages.IncommingBmsData;
+import com.danenergy.common.EventBusMessages.StartServerManagerMessage;
 import com.danenergy.common.EventQueue;
 import com.danenergy.common.IPlugin;
 import com.danenergy.configuration.Configuration;
@@ -11,6 +13,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.util.Set;
 
@@ -19,6 +22,8 @@ import java.util.Set;
  */
 public class MainLogic {
 
+    //logging
+    final static Logger logger = Logger.getLogger(MainLogic.class);
 
     Configuration configuration;
     Data sharedData;
@@ -36,7 +41,7 @@ public class MainLogic {
 
         fromBmsDataEvQ = new EventQueue<>( (s) ->
         {
-            System.out.println("MainLogic: fromBmsDataEvQ");
+            logger.info("MainLogic: fromBmsDataEvQ");            
             this.handleParsing(s);
         });
 
@@ -46,12 +51,14 @@ public class MainLogic {
 
     public void start()
     {
-        System.out.println("MainLogic Started");
+        logger.info("MainLogic Started");
 
         for(IPlugin plgn : plugins)
         {
             plgn.Start();
         }
+
+        eventBus.post(new StartServerManagerMessage());
     }
 
     public void handleParsing(String message)
@@ -130,19 +137,31 @@ public class MainLogic {
 
     public void HandleRealtimeData(FrameFormat frameFormat,RealtimeData realtimeData)
     {
-        System.out.println("MainLogic: HandleRealtimeData - parsed FrameFormat: " + frameFormat.toString());
-        System.out.println("MainLogic: HandleRealtimeData - parsed RealtimeData: " + realtimeData.toString());
+        //logger.info("MainLogic: HandleRealtimeData - parsed FrameFormat: " + frameFormat.toString());
+        //logger.info("MainLogic: HandleRealtimeData - parsed RealtimeData: " + realtimeData.toString());
 
-        sharedData.getCluster().setRtData(frameFormat.Address,realtimeData);
-        sharedData.getCluster().Update();
+        try {
+            sharedData.getCluster().setRtData(frameFormat.Address, realtimeData);
+            sharedData.getCluster().Update();
+
+            logger.info("MainLogic: updated cluster");
 
 
+            ClusterUpdatedMessage msg = new ClusterUpdatedMessage(sharedData.getCluster().getAsJson());
+
+            logger.info("MainLogic: posting cluster :\n" + msg.message);
+            eventBus.post(msg);
+        }
+        catch(Exception e)
+        {
+            logger.error("Error in handling realtime data",e);
+        }
     }
 
     @Subscribe
     public void HandleIncommingBmsData(IncommingBmsData data)
     {
-        System.out.println("MainLogic: handling " + data.data);
+        logger.info("MainLogic: handling " + data.data);
         fromBmsDataEvQ.add(data.data);
     }
 }

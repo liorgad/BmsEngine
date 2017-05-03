@@ -1,10 +1,8 @@
 package com.danenergy.test;
 
-import com.danenergy.EventBusMessages.IncommingBmsData;
 import com.danenergy.Inject.MainLogicGuiceModule;
 import com.danenergy.common.EventQueue;
 import com.danenergy.common.ICommPort;
-import com.danenergy.communications.ServerManager;
 import com.danenergy.configuration.Configuration;
 import com.danenergy.configuration.Data;
 import com.danenergy.logic.MainLogic;
@@ -12,11 +10,9 @@ import com.danenergy.parser.GenericParser;
 import com.danenergy.protocol.Command;
 import com.danenergy.protocol.FrameFormat;
 import com.danenergy.protocol.Version;
-import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.sun.corba.se.spi.activation.Server;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -52,9 +48,9 @@ public class Test
 
         //TestEventBus();
         
-        //TestInject();
+        TestInject();
 
-        TestDataLoad();
+        //TestDataLoad();
 
 //        String crc = FrameFormat.CalculateCRC("ABC");
 //

@@ -5,7 +5,6 @@ import com.danenergy.common.ParserDefinition;
 import com.danenergy.parser.GenericParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import sun.java2d.loops.GeneralRenderer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
