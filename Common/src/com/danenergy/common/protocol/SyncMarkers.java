@@ -1,4 +1,4 @@
-package com.danenergy.protocol;
+package com.danenergy.common.protocol;
 
 /**
  * Created by Lior Gad on 2/16/2017.
