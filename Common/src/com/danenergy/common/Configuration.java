@@ -1,6 +1,6 @@
 
 
-package com.danenergy.configuration;
+package com.danenergy.common;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
@@ -11,11 +11,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.Serializable;
 
-@Singleton
+@javax.inject.Singleton
 public class Configuration implements Serializable
 {
     @SerializedName("PortName")
@@ -45,6 +44,11 @@ public class Configuration implements Serializable
     @SerializedName("SamplingTimerIntervalMilisec")
     @Expose
     private Double samplingTimerIntervalMilisec;
+
+    @SerializedName("SamplingTimerDelayMilisec")
+    @Expose
+    private Double samplingTimerDelayMilisec;
+
     @SerializedName("VoltageDifferenceThreshold")
     @Expose
     private Double voltageDifferenceThreshold;
@@ -56,12 +60,38 @@ public class Configuration implements Serializable
     private Double currentThreashold;
     private final static long serialVersionUID = -731230855835483319L;
 
+    @SerializedName("ClusterUpdateTimeInSeconds")
+    @Expose
+    private int clusterUpdateTimeInSeconds;
+
+    @SerializedName("ClusterUpdateDelayTimeInSeconds")
+    @Expose
+    private int clusterUpdateDelayTimeInSeconds;
+
+    @SerializedName("HttpServerListenPort")
+    @Expose
+    private int httpServerListenPort;
+
+    @SerializedName("HttpServerListenIp")
+    @Expose
+    private String httpServerListenIp;
+
+    @SerializedName("DashboardSamplingTimeInMilliSeconds")
+    @Expose
+    private int dashboardSamplingTimeInMilliSeconds;
+
+
+    @SerializedName("DashboardSamplingDelayInMilliSeconds")
+    @Expose
+    private int dashboardSamplingDelayInMilliSeconds;
+
+
     /**
      * No args constructor for use in serialization
      *
      */
-    public Configuration() {
-        Load();
+    protected Configuration() {
+
     }
 
     /**
@@ -93,6 +123,63 @@ public class Configuration implements Serializable
         this.voltageDifferenceThreshold = voltageDifferenceThreshold;
         this.waitTimePeriodBetweenCommandSendMilliSec = waitTimePeriodBetweenCommandSendMilliSec;
         this.currentThreashold = currentThreashold;
+    }
+
+
+    public int getDashboardSamplingTimeInMilliSeconds() {
+        return dashboardSamplingTimeInMilliSeconds;
+    }
+
+    public void setDashboardSamplingTimeInMilliSeconds(int dashboardSamplingTimeInMilliSeconds) {
+        this.dashboardSamplingTimeInMilliSeconds = dashboardSamplingTimeInMilliSeconds;
+    }
+
+    public int getDashboardSamplingDelayInMilliSeconds() {
+        return dashboardSamplingDelayInMilliSeconds;
+    }
+
+    public void setDashboardSamplingDelayInMilliSeconds(int dashboardSamplingDelayInMilliSeconds) {
+        this.dashboardSamplingDelayInMilliSeconds = dashboardSamplingDelayInMilliSeconds;
+    }
+
+    public String getHttpServerListenIp() {
+        return httpServerListenIp;
+    }
+
+    public void setHttpServerListenIp(String httpServerListenIp) {
+        this.httpServerListenIp = httpServerListenIp;
+    }
+
+    public int getHttpServerListenPort() {
+        return httpServerListenPort;
+    }
+
+    public void setHttpServerListenPort(int httpServerListenPort) {
+        this.httpServerListenPort = httpServerListenPort;
+    }
+
+    public Double getSamplingTimerDelayMilisec() {
+        return samplingTimerDelayMilisec;
+    }
+
+    public void setSamplingTimerDelayMilisec(Double samplingTimerDelayMilisec) {
+        this.samplingTimerDelayMilisec = samplingTimerDelayMilisec;
+    }
+
+    public int getClusterUpdateDelayTimeInSeconds() {
+        return clusterUpdateDelayTimeInSeconds;
+    }
+
+    public void setClusterUpdateDelayTimeInSeconds(int clusterUpdateDelayTimeInSeconds) {
+        this.clusterUpdateDelayTimeInSeconds = clusterUpdateDelayTimeInSeconds;
+    }
+
+    public int getClusterUpdateTimeInSeconds() {
+        return clusterUpdateTimeInSeconds;
+    }
+
+    public void setClusterUpdateTimeInSeconds(int clusterUpdateTimeInSeconds) {
+        this.clusterUpdateTimeInSeconds = clusterUpdateTimeInSeconds;
     }
 
     public String getPortName() {
@@ -251,7 +338,7 @@ public class Configuration implements Serializable
         return this;
     }
 
-    public void Load()
+    public static Configuration Load()
     {
         Gson gson = new Gson();
         BufferedReader br = null;
@@ -259,13 +346,16 @@ public class Configuration implements Serializable
 
         try
         {
-            br = new BufferedReader(new FileReader("configuration.json"));
+            br = new BufferedReader(new FileReader("resources/configuration.json"));
             conf = gson.fromJson(br,Configuration.class);
+            br.close();
         }
         catch(Exception e)
         {
             System.out.println(e.getMessage());
         }
+
+        return conf;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.danenergy.protocol;
+package com.danenergy.common.protocol;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -8,13 +8,18 @@ import java.util.stream.Collectors;
 /**
  * Created by Lior Gad on 2/28/2017.
  */
-public enum CommandResponse {
-    RealTimeData(0x82),
+public enum Command {
+    ProtectionData(1),
+    RealTimeData(2),
+    DataSetting(5),
+    FETOperation(6),
+    Version(9),
     Unknown(-1);
 
-    private int value=0;
 
-    CommandResponse(int value)
+    private int value = 0;
+
+    Command(int value)
     {
         this.value = value;
     }
@@ -24,14 +29,13 @@ public enum CommandResponse {
         return this.value;
     }
 
-    private static final Map<Integer, CommandResponse> map;
+    private static final Map<Integer, Command> map;
     static {
         map = Arrays.stream(values())
                 .collect(Collectors.toMap(e -> e.value, e -> e));
     }
 
-    public static CommandResponse fromInt(int value) {
+    public static Command fromInt(int value) {
         return Optional.ofNullable(map.get(value)).orElse(Unknown);
     }
-
 }
