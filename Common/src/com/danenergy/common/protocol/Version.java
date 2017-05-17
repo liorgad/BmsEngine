@@ -1,4 +1,4 @@
-package com.danenergy.protocol;
+package com.danenergy.common.protocol;
 
 import java.util.Arrays;
 import java.util.Map;

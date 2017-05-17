@@ -1,15 +1,15 @@
 package com.danenergy.test;
 
-import com.danenergy.Inject.MainLogicGuiceModule;
+import com.danenergy.inject.MainLogicGuiceModule;
 import com.danenergy.common.EventQueue;
 import com.danenergy.common.ICommPort;
-import com.danenergy.configuration.Configuration;
-import com.danenergy.configuration.Data;
+import com.danenergy.common.Configuration;
+import com.danenergy.common.Data;
 import com.danenergy.logic.MainLogic;
-import com.danenergy.parser.GenericParser;
-import com.danenergy.protocol.Command;
-import com.danenergy.protocol.FrameFormat;
-import com.danenergy.protocol.Version;
+import com.danenergy.common.parser.GenericParser;
+import com.danenergy.common.protocol.Command;
+import com.danenergy.common.protocol.FrameFormat;
+import com.danenergy.common.protocol.Version;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -150,6 +150,9 @@ public class Test
         catch (Exception e)
         {
 
+        }
+        finally {
+            logic.stop();
         }
     }
 
