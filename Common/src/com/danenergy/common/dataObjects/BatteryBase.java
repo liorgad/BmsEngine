@@ -1,6 +1,6 @@
-package com.danenergy.dataObjects;
+package com.danenergy.common.dataObjects;
 
-import com.danenergy.protocol.RealtimeData;
+import com.danenergy.common.protocol.RealtimeData;
 import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -23,6 +23,51 @@ public abstract class BatteryBase {
 
     @Expose
     protected String status;
+
+    @Expose
+    protected int statusNum =1;
+
+    @Expose
+    protected int chargeState;
+
+    @Expose
+    protected int temperatureState;
+
+    @Expose
+    protected int voltageState;
+
+
+    public int getChargeState() {
+        return chargeState;
+    }
+
+    public void setChargeState(int chargeState) {
+        this.chargeState = chargeState;
+    }
+
+    public int getTemperatureState() {
+        return temperatureState;
+    }
+
+    public void setTemperatureState(int temperatureState) {
+        this.temperatureState = temperatureState;
+    }
+
+    public int getVoltageState() {
+        return voltageState;
+    }
+
+    public void setVoltageState(int voltageState) {
+        this.voltageState = voltageState;
+    }
+
+    public int getStatusNum() {
+        return statusNum;
+    }
+
+    public void setStatusNum(int statusNum) {
+        this.statusNum = statusNum;
+    }
 
     public double getVoltage() {
         return voltage;
