@@ -24,5 +24,6 @@
     <orderEntry type="library" name="org.nanohttpd:nanohttpd:2.3.1" level="project" />
     <orderEntry type="library" name="log4j:log4j:1.2.17" level="project" />
     <orderEntry type="module" module-name="SerialComm" />
+    <orderEntry type="library" name="com.google.http-client:google-http-client:1.22.0" level="project" />
   </component>
 </module>
