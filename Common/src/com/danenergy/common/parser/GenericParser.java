@@ -1,4 +1,4 @@
-package com.danenergy.parser;
+package com.danenergy.common.parser;
 
 import com.danenergy.common.Pair;
 import com.danenergy.common.ParserDefinition;

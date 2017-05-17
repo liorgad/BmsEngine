@@ -1,8 +1,8 @@
-package com.danenergy.configuration;
+package com.danenergy.common;
 
-import com.danenergy.dataObjects.Battery;
-import com.danenergy.dataObjects.Cluster;
-import com.danenergy.dataObjects.Parallel;
+import com.danenergy.common.dataObjects.Battery;
+import com.danenergy.common.dataObjects.Cluster;
+import com.danenergy.common.dataObjects.Parallel;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -168,6 +168,7 @@ public class Data implements Serializable
             {
                 br = new BufferedReader(new FileReader("resources/data.json"));
                 data = gson.fromJson(br,Data.class);
+                br.close();
 
                 if(data.hasCluster)
                 {

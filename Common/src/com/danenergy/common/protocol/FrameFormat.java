@@ -1,8 +1,11 @@
-package com.danenergy.protocol;
+package com.danenergy.common.protocol;
 
 import com.danenergy.common.Pair;
 import com.danenergy.common.ParserDefinition;
-import com.danenergy.parser.GenericParser;
+import com.danenergy.common.parser.GenericParser;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -16,29 +19,37 @@ import java.util.List;
 
 public class FrameFormat {
 
+    @Expose
     @ParserDefinition(Index = 0, BytesLength = 1, ASCIILength = 1)
     public static char SOI = ':';
 
+    @Expose
     @ParserDefinition(Index = 1, ASCIILength = 2, BytesLength = 1)
     public short Address;
 
+    @Expose
     @ParserDefinition(Index = 2, ASCIILength = 2, BytesLength = 1)
     public short Cmd;
 
+    @Expose
     @ParserDefinition(Index = 3, ASCIILength = 2, BytesLength = 1)
     public short Version;
 
+    @Expose
     @ParserDefinition(Index = 4, ASCIILength = 4, BytesLength = 2)
     public int Length;
 
+    @Expose
     //[ParserDefinition(5, -1, "Length")]
     @ParserDefinition(Index = 5, RelatedFieldLength = "Length")
     public String Data;
 
+    @Expose
     //[ParserDefinition(6, 2)]
     @ParserDefinition(Index = 6, ASCIILength = 2, BytesLength = 1)
     public short CRC;
 
+    @Expose
     //[ParserDefinition(7, 1)]
     @ParserDefinition(Index = 7, ASCIILength = 1, BytesLength = 1)
     public static char EOI = '~';
@@ -152,6 +163,19 @@ public class FrameFormat {
         String result = FrameFormat.SOI + cmdSub + crc + FrameFormat.EOI;
 
         return result;
+    }
+
+    public String getAsJson()
+    {
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setPrettyPrinting()
+                .create();
+
+// 2. Java object to JSON, and assign to a String
+        String jsonInString = gson.toJson(this);
+
+        return jsonInString;
     }
 }
 

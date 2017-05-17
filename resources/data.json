@@ -1,7 +1,7 @@
 {
   "HasCluster":true,
   "IsParallel":false,
-  "DefinedAddresses":["6","5","4","3","2","1"],
-  "Group1":["6","3","1"],
-  "Group2":["5","4","2"]
+  "DefinedAddresses":["5","3"],
+  "Group1":["3"],
+  "Group2":["5"]
 }
