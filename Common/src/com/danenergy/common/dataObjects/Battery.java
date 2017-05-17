@@ -1,14 +1,18 @@
-package com.danenergy.dataObjects;
+package com.danenergy.common.dataObjects;
 
 import com.danenergy.common.ArrayUtils;
-import com.danenergy.protocol.RealtimeData;
-import com.danenergy.protocol.Version;
+import com.danenergy.common.protocol.RealtimeData;
+import com.danenergy.common.protocol.Version;
+import org.apache.log4j.Logger;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 
 public class Battery extends  BatteryBase implements Serializable{
+
+    //logging
+    final static Logger logger = Logger.getLogger(Battery.class);
 
     RealtimeData rtData;
     short address;
@@ -41,7 +45,7 @@ public class Battery extends  BatteryBase implements Serializable{
     @Override
     public void Update() {
 
-        setVoltage((rtData.Vbat * 2) /1000);
+        setVoltage((rtData.Vbat * 2.0) /1000.0);
 
         double current ;
         if (rtData.Current[1] != 0 && rtData.Current[0] != 0)
@@ -58,6 +62,12 @@ public class Battery extends  BatteryBase implements Serializable{
         setTemperature(temp-40);
 
         setStateOfCharge(rtData.SOC);
+
+        setChargeState(rtData.CState);
+        setVoltageState(rtData.VState);
+        setTemperatureState(rtData.TState);
+
+        logger.info("Battery " + address + " Updated");
     }
 
     @Override
