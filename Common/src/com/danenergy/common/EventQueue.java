@@ -3,9 +3,7 @@ package com.danenergy.common;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-/**
- * Created by Lior Gad on 2/28/2017.
- */
+
 public class EventQueue <T extends Object>
 {
     private boolean stop = false;

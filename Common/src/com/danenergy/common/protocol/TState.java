@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 
 public enum TState {
+    TCELL_NORMAL(0,"normal temperature",1),
 
     TCELL_CSGH(1,"charge high temperature",3),//uint16_t TCELL_CSGH:1; //charge high temperature
 

@@ -1,7 +1,9 @@
 {
   "HasCluster":true,
+  //"HasCluster":false,
   "IsParallel":false,
   "DefinedAddresses":["5","3"],
+  //"DefinedAddresses":["1"],
   "Group1":["3"],
   "Group2":["5"]
 }

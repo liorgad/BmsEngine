@@ -1,6 +1,6 @@
 {
-  //"PortName":"COM3",
-  "PortName":"/dev/ttyUSB0 ",
+  "PortName":"COM3",
+  //"PortName":"/dev/ttyUSB0 ",
   "BaudRate":9600,
   "ParityType":0,
   "DataBits":8,
@@ -10,13 +10,14 @@
   "WriteTimeout":250,
   "SamplingTimerIntervalMilisec":2000.0,
   "SamplingTimerDelayMilisec": 1000.0,
+  "ActivateSamplingTimer" : true,
   "VoltageDifferenceThreshold":1.5,
   "WaitTimePeriodBetweenCommandSendMilliSec":250,
   "CurrentThreashold":1.0,
   "ClusterUpdateTimeInSeconds" : 5,
   "ClusterUpdateDelayTimeInSeconds" : 10,
   "HttpServerListenPort" : 8080,
-  "HttpServerListenIp" : "localhost",
+  "HttpServerListenIp" : "192.168.10.41",
   "DashboardSamplingTimeInMilliSeconds" : 2000,
   "DashboardSamplingDelayInMilliSeconds" : 2000
 }

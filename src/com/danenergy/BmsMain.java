@@ -1,6 +1,7 @@
 package com.danenergy;
 
 
+import com.danenergy.common.ResourcesGuiceModule;
 import com.danenergy.inject.MainLogicGuiceModule;
 import com.danenergy.logic.MainLogic;
 import com.google.inject.Guice;
@@ -15,7 +16,7 @@ public class BmsMain {
     {
         logger.info("Application staring");
 
-        Injector guice = Guice.createInjector(new MainLogicGuiceModule());
+        Injector guice = Guice.createInjector(new MainLogicGuiceModule(),new ResourcesGuiceModule());
         MainLogic logic = guice.getInstance(MainLogic.class);
         logic.start();
 

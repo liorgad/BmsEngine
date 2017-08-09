@@ -6,6 +6,8 @@ import com.danenergy.common.protocol.CState;
 import com.danenergy.common.protocol.RealtimeData;
 import com.danenergy.common.protocol.TState;
 import com.danenergy.common.protocol.VState;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -47,6 +49,7 @@ public class Parallel extends BatteryBase implements Serializable {
 
         if(null == batteriesInParallel)
         {
+            logger.warn("no batteries in parallel defined");
             return;
         }
 
@@ -74,20 +77,31 @@ public class Parallel extends BatteryBase implements Serializable {
             int voltState = batteriesInParallel.stream().mapToInt(b -> b.getVoltageState()).reduce((v1, v2) -> v1 | v2).getAsInt();
             setVoltageState(voltState);
 
-            int statusChanged = chargeState | tempState | voltState;
+            int statusChanged = 2 | tempState | voltState;
 
             double currentThreashold = config.getCurrentThreashold();
 
             if (statusChanged > 0)
             {
-                String status = batteriesInParallel.stream()
-                        .filter(b ->
-                                        CState.fromInt(b.getChargeState()).getStatus() > 1
-                                        || TState.fromInt(b.getTemperatureState()).getStatus() > 1
-                                        || VState.fromInt(b.getVoltageState()).getStatus() > 1)
-                        .mapToInt(b -> b.address)
-                        .mapToObj(a -> String.format("%d",a))
-                        .reduce((addr1, addr2) -> String.format("%s,%s", addr1, addr2)).get();
+                String status="";
+                if(batteriesInParallel.size() > 1) {
+                    Stream<Battery> batts = batteriesInParallel.stream()
+                            .filter(b ->
+                                    CState.fromInt(b.getChargeState()).getStatus() > 1
+                                            || TState.fromInt(b.getTemperatureState()).getStatus() > 1
+                                            || VState.fromInt(b.getVoltageState()).getStatus() > 1);
+                    if(batts.toArray().length > 0) {
+                        Stream<String> addresses = batts.mapToInt(b -> b.address)
+                                .mapToObj(a -> String.format("%d", a));
+                        if(addresses.count() > 1) {
+                            status = addresses.reduce((addr1, addr2) -> String.format("%s,%s", addr1, addr2)).get();
+                        }
+                        else
+                        {
+                            status = addresses.findFirst().get();
+                        }
+                    }
+                }
                 setStatus(status);
 
                 int cStatNum = batteriesInParallel.stream()
@@ -102,9 +116,10 @@ public class Parallel extends BatteryBase implements Serializable {
                         .mapToInt(b -> VState.fromInt(b.getVoltageState()).getStatus())
                         .max().getAsInt();
 
-                int maxStat = Stream.of(cStatNum,tStatNum,vStatNum).max((o1,o2) -> Math.max(o1,o2)).get();
+                int maxStat = Stream.of(cStatNum, tStatNum, vStatNum).max((o1, o2) -> Math.max(o1, o2)).get();
 
                 setStatusNum(maxStat);
+
 
             }
             else if (current > 0 && Math.abs(current) > currentThreashold)
@@ -115,6 +130,11 @@ public class Parallel extends BatteryBase implements Serializable {
             else if (current < 0 && Math.abs(current) > currentThreashold)
             {
                 setStatus("discharge status");
+                setStatusNum(1);
+            }
+            else
+            {
+                setStatus(null);
                 setStatusNum(1);
             }
 
@@ -149,6 +169,19 @@ public class Parallel extends BatteryBase implements Serializable {
             bat.setRtData(rtData);
             bat.Update();
         }
+    }
+
+    @Override
+    public String getAsJson() {
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setPrettyPrinting()
+                .create();
+
+// 2. Java object to JSON, and assign to a String
+        String jsonInString = gson.toJson(this);
+
+        return jsonInString;
     }
 
     public  boolean isPresent(short address)

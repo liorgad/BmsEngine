@@ -1,6 +1,7 @@
 package com.danenergy.common;
 
 import com.danenergy.common.dataObjects.Battery;
+import com.danenergy.common.dataObjects.BatteryBase;
 import com.danenergy.common.dataObjects.Cluster;
 import com.danenergy.common.dataObjects.Parallel;
 import com.google.gson.Gson;
@@ -14,8 +15,12 @@ import javax.validation.Valid;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 public class Data implements Serializable
 {
@@ -42,6 +47,8 @@ public class Data implements Serializable
 
 
     private Cluster cluster;
+    private Battery singleBattery;
+    private Map<String,Battery> batteries;
 
 
     /**
@@ -66,6 +73,10 @@ public class Data implements Serializable
         this.definedAddresses = definedAddresses;
         this.group1 = group1;
         this.group2 = group2;
+    }
+
+    public synchronized Map<String, Battery> getBatteries() {
+        return batteries;
     }
 
     public Boolean getHasCluster() {
@@ -133,7 +144,28 @@ public class Data implements Serializable
         return this;
     }
 
-    public Cluster getCluster() {return cluster;}
+    public synchronized BatteryBase getCluster() {
+        if(getHasCluster()) {
+            if(batteries.values().stream().anyMatch(b -> b.getStatusNum() != 1))
+            {
+                int maxStat = batteries.values().stream().filter( b ->b.getStatusNum() != 1).mapToInt(b -> b.getStatusNum()).max().getAsInt();
+                cluster.setStatusNum(maxStat);
+                String clusterStat  = batteries.values().stream()
+                        .filter( b ->b.getStatusNum() != 1)
+                        .mapToInt(b -> b.getAddress())
+                        .mapToObj(a -> String.format("%d",a))
+                        .reduce((addr1, addr2) -> String.format("%s,%s", addr1, addr2)).get();
+                cluster.setStatus(clusterStat);
+            }
+            return cluster;
+        }
+        else
+        {
+            return singleBattery;
+        }
+    }
+
+    public Battery getBattery() {return singleBattery; }
 
     @Override
     public String toString() {
@@ -170,25 +202,44 @@ public class Data implements Serializable
                 data = gson.fromJson(br,Data.class);
                 br.close();
 
-                if(data.hasCluster)
+                if(null != data.definedAddresses && data.definedAddresses.size() > 0)
                 {
-                    List<Battery> bl1 = new LinkedList<>();
-                    data.getGroup1().stream().
-                    map(s ->
-                    {
-                        Battery b = new Battery();
-                        b.setAddress(Short.parseShort(s));
-                        return b;
-                    }).forEach(b -> bl1.add(b));
-
-                    List<Battery> bl2 = new LinkedList<>();
-                    data.getGroup2().stream().
-                            map(s ->
+                    data.batteries = new HashMap<String,Battery>(data.definedAddresses.size());
+                    data.definedAddresses.stream().forEach(new Consumer<String>() {
+                        @Override
+                        public void accept(String s) {
+                            if(!data.batteries.containsKey(s))
                             {
                                 Battery b = new Battery();
                                 b.setAddress(Short.parseShort(s));
-                                return b;
-                            }).forEach(b -> bl2.add(b));
+                                b.setStatus(s);
+                                data.batteries.put(s,b);
+                            }
+                        }
+                    });
+                }
+
+                if(data.hasCluster)
+                {
+                    List<Battery> bl1 = new LinkedList<>();
+                    data.getGroup1().stream()
+//                    map(s ->
+//                    {
+//                        Battery b = new Battery();
+//                        b.setAddress(Short.parseShort(s));
+//                        return b;
+//                    }).forEach(b -> bl1.add(b));
+                        .forEach(b -> bl1.add(data.batteries.get(b)));
+
+                    List<Battery> bl2 = new LinkedList<>();
+                    data.getGroup2().stream()
+//                            map(s ->
+//                            {
+//                                Battery b = new Battery();
+//                                b.setAddress(Short.parseShort(s));
+//                                return b;
+//                            }).forEach(b -> bl2.add(b));
+                        .forEach(b -> bl2.add(data.batteries.get(b)));
 
                     Parallel p1 = new Parallel(bl1);
                     Parallel p2 = new Parallel(bl2);
@@ -198,6 +249,18 @@ public class Data implements Serializable
                     parallelList.add(p2);
 
                     data.cluster = new Cluster(parallelList);
+
+                    data.cluster.setStatusNum(3);
+
+                    String addresses = data.definedAddresses.stream().reduce( (s1,s2)-> s1+"," + s2).get();
+
+                    data.cluster.setStatus(addresses);
+                }
+                else
+                {
+                    String batAddr = data.definedAddresses.get(0);
+
+                    data.singleBattery = data.batteries.get(batAddr);
                 }
 
             }

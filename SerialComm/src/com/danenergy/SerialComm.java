@@ -124,6 +124,65 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
         }
     }
 
+    public void initializePort(String portName,int baudrate,int databits,int stopbits,int paritybits) {
+
+
+        try {
+            if(null == portName)
+            {
+                portName = this.configuration.getPortName();
+            }
+            Enumeration<?> enumComm2 = CommPortIdentifier.getPortIdentifiers();///Search all ports USB
+            CommPortIdentifier currPortId=null;
+            while (enumComm2.hasMoreElements()) {
+                currPortId = (CommPortIdentifier) enumComm2.nextElement();
+                if (currPortId.getName() == portName) {
+                    break;
+                }
+            }
+
+            if(null == currPortId )
+            {
+                System.out.println("Could not find port " + portName);
+                System.exit(-1);
+            }
+
+            System.out.println("PortID " + currPortId.getName());
+
+            //the method below returns an object of type CommPort
+            //the CommPort object can be casted to a SerialPort object
+            serialPort = (SerialPort) currPortId.open("BmsEngine",TIMEOUT);
+
+            System.out.println("connected to " + currPortId.getName());
+            // set port parameters
+//            serialPort.setSerialPortParams(9600,
+//                    SerialPort.DATABITS_8,
+//                    SerialPort.STOPBITS_1,
+//                    SerialPort.PARITY_NONE);
+
+            serialPort.setSerialPortParams(baudrate,
+                    databits,
+                    stopbits,
+                    paritybits);
+
+            //serialPort.addEventListener(this);
+            //serialPort.notifyOnDataAvailable(true);
+
+            initIOStream();
+        }
+        catch (PortInUseException e)
+        {
+            String logText = portName + " is in use. (" + e.toString() + ")";
+
+            logger.error(logText,e);
+        }
+        catch (Exception e)
+        {
+            String logText = "Failed to open " + portName + "(" + e.toString() + ")";
+            logger.error(logText,e);
+        }
+    }
+
     StringBuilder sb = new StringBuilder();
     //what happens when data is received
     //pre style="font-size: 11px;": serial event is triggered
@@ -235,13 +294,23 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
             if(isOpen)
             {
                 sendWrite(data);
-                Thread.sleep(this.configuration.getWaitTimePeriodBetweenCommandSendMilliSec());
+                long sleepTime = 0;
+                if(null == this.configuration)
+                {
+                    sleepTime = 250;
+                }
+                else {
+                    sleepTime = this.configuration.getWaitTimePeriodBetweenCommandSendMilliSec();
+                }
+
+                Thread.sleep(sleepTime);
                 return read();
             }
         }
         catch (Exception e)
         {
             logger.error("sendReceive Error",e);
+
         }
         return null;
     }
@@ -293,9 +362,13 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
     @Inject
     public SerialComm(Configuration config)
     {
-
         this.configuration = config;
 
+        logger.info("SerialComm loaded");
+    }
+
+    public SerialComm()
+    {
         logger.info("SerialComm loaded");
     }
 

@@ -1,25 +1,26 @@
 package com.danenergy.logic;
 
-import com.danenergy.common.EventBusMessages.ClusterUpdatedMessage;
-import com.danenergy.common.EventBusMessages.IncommingBmsData;
-import com.danenergy.common.EventBusMessages.StartServerManagerMessage;
+import com.danenergy.common.EventBusMessages.*;
 import com.danenergy.common.EventQueue;
 import com.danenergy.common.IPlugin;
 import com.danenergy.common.Configuration;
 import com.danenergy.common.Data;
+import com.danenergy.common.dataObjects.Battery;
 import com.danenergy.common.parser.GenericParser;
 import com.danenergy.common.protocol.*;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Inject;
 import com.sun.glass.ui.CommonDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.util.Date;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 
@@ -35,6 +36,7 @@ public class MainLogic {
     EventQueue<String> fromBmsDataEvQ;
     Set<IPlugin> plugins;
     Timer clusterUpdateTimer;
+    ExecutorService executorService;
 
     @Inject
     public MainLogic(EventBus eventBus,Configuration  conf,Data sharedData,Set<IPlugin> plugins)
@@ -43,6 +45,8 @@ public class MainLogic {
         this.configuration = conf;
         this.sharedData = sharedData;
         this.plugins = plugins;
+
+        executorService = Executors.newFixedThreadPool(10);
 
         fromBmsDataEvQ = new EventQueue<>( (s) ->
         {
@@ -70,6 +74,10 @@ public class MainLogic {
             int clusterUpdateTime = configuration.getClusterUpdateTimeInSeconds();
             int clusterDelay = configuration.getClusterUpdateDelayTimeInSeconds();
 
+            if(!configuration.isActivateSamplingTimer())
+            {
+                return;
+            }
             clusterUpdateTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -119,6 +127,8 @@ public class MainLogic {
                 this.clusterUpdateTimer.cancel();
                 this.clusterUpdateTimer.purge();
             }
+
+            executorService.shutdown();
         }
         catch(Exception e)
         {
@@ -227,18 +237,75 @@ public class MainLogic {
         fromBmsDataEvQ.add(data.data);
     }
 
+    @Subscribe
+    public void handleClientRequest(ClientRequest request)
+    {
+        logger.info("MainLogic: received client request for name="+request.getName());
+
+
+        getRequestFromSharedData(request);
+
+//        ExecutorService task = Executors.newSingleThreadExecutor();
+//
+//        executorService.execute(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        });
+    }
+
+    @Subscribe
+    public void handleBmsNonResponsive(BmsNonResponsive msg)
+    {
+        String addrAsStr = Integer.toString(msg.BmsAddress);
+        Battery batt = sharedData.getBatteries().get(addrAsStr);
+        batt.setStatusNum(3);
+        batt.setStatus(addrAsStr);
+        batt.setRtData(null);
+    }
+
+    private void getRequestFromSharedData(ClientRequest request) {
+        Map<String,Object> result = new HashMap<String, Object>();
+        if (request.getName().equals("cluster"))
+        {
+            result.put("cluster",sharedData.getCluster());
+        }
+        else if(request.getName().equals("all"))
+        {
+            result.put("batteries", sharedData.getBatteries());
+            if(sharedData.getHasCluster())
+            {
+                result.put("cluster",sharedData.getCluster());
+            }
+        }
+        else if(StringUtils.isNumeric(request.getName()))
+        {
+            result.put(request.getName(), sharedData.getBatteries().get(request.getName()));
+        }
+        else
+        {
+
+        }
+
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setPrettyPrinting()
+                .create();
+
+        ResponseToClientRequest msg = new ResponseToClientRequest(gson.toJson(result));
+
+        logger.info("MainLogic: posting cluster :\n" + msg.getResponse());
+
+        eventBus.post(msg);
+    }
+
     public void updateCluster()
     {
         try {
             sharedData.getCluster().Update();
 
-            logger.info("MainLogic: updated cluster");
-
-
-            ClusterUpdatedMessage msg = new ClusterUpdatedMessage(sharedData.getCluster().getAsJson());
-
-            logger.info("MainLogic: posting cluster :\n" + msg.message);
-            eventBus.post(msg);
+            logger.info("MainLogic: cluster updated");
         }
         catch(Exception e)
         {

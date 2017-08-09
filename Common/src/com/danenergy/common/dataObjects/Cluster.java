@@ -86,43 +86,52 @@ public class Cluster extends BatteryBase implements Serializable {
             //((bvm.VoltageState != 0) && (bvm.VoltageForeColor == System.Drawing.Color.Red)) ||
             //((bvm.TemperatureState != 0) && (bvm.TemperatureForeColor == System.Drawing.Color.Red)));
 
-            if (statusChanged > 0)
-            {
-                String status = parallelGroups.stream()
-                        .filter(b -> (b.getChargeState() | b.getVoltageState() | b.getTemperatureState()) > 0)
-                        .map(b -> b.getStatus())
-                        .reduce((stat1, stat2) -> String.format("%s,%s", stat1, stat2)).get();
-                setStatus(status);
-
-                int cStatNum = parallelGroups.stream()
-                        .mapToInt(b -> CState.fromInt(b.getChargeState()).getStatus())
-                        .max().getAsInt();
-
-                int tStatNum = parallelGroups.stream()
-                        .mapToInt(b -> TState.fromInt(b.getTemperatureState()).getStatus())
-                        .max().getAsInt();
-
-                int vStatNum = parallelGroups.stream()
-                        .mapToInt(b -> VState.fromInt(b.getVoltageState()).getStatus())
-                        .max().getAsInt();
-
-                int maxStat = Stream.of(cStatNum, tStatNum, vStatNum).max((o1,o2) -> Math.max(o1,o2)).get();
-
-                setStatusNum(maxStat);
-            }
-            else if (current > 0 && Math.abs(current) > currentThreashold)
-            {
-                setStatus("Charge status");
-                setStatusNum(1);
-            }
-            else if (current < 0 && Math.abs(current) > currentThreashold)
-            {
-                setStatus("Discharge status");
-                setStatusNum(1);
-            }
+            calculateStatus(current, statusChanged, currentThreashold);
         }
 
         logger.info("Cluster Updated");
+    }
+
+    private void calculateStatus(double current, int statusChanged, double currentThreashold) {
+        if (statusChanged > 0)
+        {
+            String status = parallelGroups.stream()
+                    .filter(b -> (b.getChargeState() | b.getVoltageState() | b.getTemperatureState()) > 0)
+                    .map(b -> b.getStatus())
+                    .reduce((stat1, stat2) -> String.format("%s,%s", stat1, stat2)).get();
+            setStatus(status);
+
+            int cStatNum = parallelGroups.stream()
+                    .mapToInt(b -> CState.fromInt(b.getChargeState()).getStatus())
+                    .max().getAsInt();
+
+            int tStatNum = parallelGroups.stream()
+                    .mapToInt(b -> TState.fromInt(b.getTemperatureState()).getStatus())
+                    .max().getAsInt();
+
+            int vStatNum = parallelGroups.stream()
+                    .mapToInt(b -> VState.fromInt(b.getVoltageState()).getStatus())
+                    .max().getAsInt();
+
+            int maxStat = Stream.of(cStatNum, tStatNum, vStatNum).max((o1,o2) -> Math.max(o1,o2)).get();
+
+            setStatusNum(maxStat);
+        }
+        else if (current > 0 && Math.abs(current) > currentThreashold)
+        {
+            setStatus("Charge status");
+            setStatusNum(1);
+        }
+        else if (current < 0 && Math.abs(current) > currentThreashold)
+        {
+            setStatus("Discharge status");
+            setStatusNum(1);
+        }
+        else
+        {
+            setStatus(null);
+            setStatusNum(1);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.danenergy.communications;
 
+import com.danenergy.common.EventBusMessages.BmsNonResponsive;
 import com.danenergy.common.EventBusMessages.IncommingBmsData;
 import com.danenergy.common.EventBusMessages.StartServerManagerMessage;
 import com.danenergy.common.ICommPort;
@@ -19,6 +20,8 @@ import org.apache.log4j.Logger;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class ServerManager implements IPlugin {
@@ -54,6 +57,14 @@ public class ServerManager implements IPlugin {
         eventBus.post(inData);
     }
 
+    public void publishBmsNonresponsiceAsync(BmsNonResponsive bmsResp)
+    {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            eventBus.post(bmsResp);
+        });
+    }
+
     @Override
     public void Stop() {
 
@@ -81,6 +92,11 @@ public class ServerManager implements IPlugin {
     {
         //completeTask();
         int threadWaitForEachBattery = config.getWaitTimePeriodBetweenCommandSendMilliSec();
+
+        if(!config.isActivateSamplingTimer())
+        {
+            return;
+        }
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -126,6 +142,10 @@ public class ServerManager implements IPlugin {
 
                             if(StringUtils.isEmpty(result))
                             {
+                                logger.warn("Bms " + s + " not responding");
+                                BmsNonResponsive msg = new BmsNonResponsive();
+                                msg.BmsAddress = ff.Address;
+                                publishBmsNonresponsiceAsync(msg);
                                 return;
                             }
 
@@ -149,6 +169,8 @@ public class ServerManager implements IPlugin {
 
         }, 0, config.getSamplingTimerIntervalMilisec().intValue());
         logger.info("TimerTask started");
+
+
 
 
         //cancel after sometime

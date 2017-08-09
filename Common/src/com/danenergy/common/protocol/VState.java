@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
  * Created by dev on 07/05/2017.
  */
 public enum VState {
+    VNORM(0,"normal voltage",1),
+
     VOV(1,"single cell overvoltage",3), //uint16_t VOV:1; //single cell overvoltage
 
     VUV(2,"single cell undervoltage",2), //uint16_t VUV:1; //single cell undervoltage
@@ -49,7 +51,7 @@ public enum VState {
     }
 
     public int getStatus() {
-        return status;
+         return status;
     }
 
     public int getValue()

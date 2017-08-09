@@ -10,6 +10,12 @@ import com.danenergy.common.parser.GenericParser;
 import com.danenergy.common.protocol.Command;
 import com.danenergy.common.protocol.FrameFormat;
 import com.danenergy.common.protocol.Version;
+import com.google.api.client.http.*;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.Key;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -17,12 +23,16 @@ import com.google.inject.Injector;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Created by Lior Gad on 2/13/2017.
  */
 public class Test
 {
+    static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    static final JsonFactory JSON_FACTORY = new JacksonFactory();
+
     static final String realTimeData82 = ":038252007E000000000000001DA7040EC90EC30EEE0ED500000000053D3E3E3D3D00000000000000000F00000000000000000000000000014601A402BC1D~";
     static void TestEventQueue()
     {
@@ -42,13 +52,15 @@ public class Test
     }
     public static void main(String[] args)
     {
+        int statusChanged = 0 | 0 | 34;
+        //TestHttpClient();
         //TestTcpClient();
 
         //TestCalculateLength();
 
         //TestEventBus();
         
-        TestInject();
+        //TestInject();
 
         //TestDataLoad();
 
@@ -170,5 +182,51 @@ public class Test
         {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static class BmsEngineUrl extends GenericUrl {
+
+        public BmsEngineUrl(String encodedUrl) {
+            super(encodedUrl);
+        }
+
+        @Key
+        public String fields;
+    }
+
+    private static void TestHttpClient()
+    {
+        try {
+            HttpRequestFactory requestFactory =
+                    HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
+                        @Override
+                        public void initialize(HttpRequest request) {
+                            request.setParser(new JsonObjectParser(JSON_FACTORY));
+                        }
+                    });
+            BmsEngineUrl url = new BmsEngineUrl("http://localhost:8080");
+            url.set("name","cluster");
+            //url.fields = "id,tags,title,url";
+            HttpRequest request = requestFactory.buildGetRequest(url);
+
+
+
+//            String requestBody = "{'name': 'all', 'type' : 'realtimeData' }";
+//            HttpRequest request = requestFactory.buildPostRequest(url, ByteArrayContent.fromString(null, requestBody));
+//            request.getHeaders().setContentType("application/json");
+
+            HttpResponse response = request.execute();
+
+            System.out.println(response.getContent());
+        }
+        catch (IOException e)
+        {
+            System.out.println(e);
+        }
+    }
+
+    private static void TestHttpServerLogic()
+    {
+
     }
 }

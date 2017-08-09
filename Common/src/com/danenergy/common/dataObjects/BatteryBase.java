@@ -25,7 +25,7 @@ public abstract class BatteryBase {
     protected String status;
 
     @Expose
-    protected int statusNum =1;
+    protected int statusNum =3;
 
     @Expose
     protected int chargeState;
@@ -119,4 +119,6 @@ public abstract class BatteryBase {
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
     }
+
+    public abstract String getAsJson();
 }

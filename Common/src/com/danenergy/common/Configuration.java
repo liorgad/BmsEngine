@@ -85,6 +85,10 @@ public class Configuration implements Serializable
     @Expose
     private int dashboardSamplingDelayInMilliSeconds;
 
+    @SerializedName("ActivateSamplingTimer")
+    @Expose
+    private boolean activateSamplingTimer;
+
 
     /**
      * No args constructor for use in serialization
@@ -125,6 +129,9 @@ public class Configuration implements Serializable
         this.currentThreashold = currentThreashold;
     }
 
+    public boolean isActivateSamplingTimer() {
+        return activateSamplingTimer;
+    }
 
     public int getDashboardSamplingTimeInMilliSeconds() {
         return dashboardSamplingTimeInMilliSeconds;

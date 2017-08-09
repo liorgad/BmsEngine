@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
  * Created by dev on 07/05/2017.
  */
 public enum CState {
+    IDLE(0,"idle status",1),
 
     CING(1,"charge status",1), //uint16_t CING:1; //charge status
 
