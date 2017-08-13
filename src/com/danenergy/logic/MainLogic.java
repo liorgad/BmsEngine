@@ -46,23 +46,24 @@ public class MainLogic {
         this.sharedData = sharedData;
         this.plugins = plugins;
 
-        executorService = Executors.newFixedThreadPool(10);
 
-        fromBmsDataEvQ = new EventQueue<>( (s) ->
-        {
-            logger.info("MainLogic: fromBmsDataEvQ");            
-            this.handleParsing(s);
-        });
-
-
-        eventBus.register(this);
-
-        clusterUpdateTimer = new Timer("ClusterUpdateTimer",true);
     }
 
     public void start()
     {
         try {
+            executorService = Executors.newFixedThreadPool(10);
+
+            fromBmsDataEvQ = new EventQueue<>( (s) ->
+            {
+                logger.info("MainLogic: fromBmsDataEvQ");
+                this.handleParsing(s);
+            });
+
+
+            eventBus.register(this);
+
+            clusterUpdateTimer = new Timer("ClusterUpdateTimer",true);
             logger.info("MainLogic Started");
 
             for (IPlugin plgn : plugins) {
@@ -102,6 +103,8 @@ public class MainLogic {
         logger.info("MainLogic: stop");
 
         try {
+
+            eventBus.post(new StopServerManagerMessage());
 
             if (null != this.eventBus) {
                 this.eventBus.unregister(this);

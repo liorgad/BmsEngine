@@ -3,6 +3,7 @@ package com.danenergy.communications;
 import com.danenergy.common.EventBusMessages.BmsNonResponsive;
 import com.danenergy.common.EventBusMessages.IncommingBmsData;
 import com.danenergy.common.EventBusMessages.StartServerManagerMessage;
+import com.danenergy.common.EventBusMessages.StopServerManagerMessage;
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
 import com.danenergy.common.Configuration;
@@ -28,12 +29,16 @@ public class ServerManager implements IPlugin {
 
     //logging
     final static Logger logger = Logger.getLogger(ServerManager.class);
+
+    //constancts
+    final static int COMMAND_TIMEOUT_SECONDS = 5;
     
     EventBus eventBus;
     ICommPort commPort;
     Timer timer;
     Data sharedData;
     Configuration config;
+    Timer commandTimeoutTimer;
 
     @Inject
     public ServerManager(EventBus eventBus,ICommPort commPort,Data sharedData,Configuration config) {
@@ -71,14 +76,24 @@ public class ServerManager implements IPlugin {
          eventBus.unregister(this);
          commPort.close();
          timer.cancel();
-
+        commandTimeoutTimer.cancel();
+        commandTimeoutTimer.purge();
         logger.info("ServerManager Stopped");
+    }
+
+    @Subscribe
+    public void handleStopServerManager(StopServerManagerMessage msg)
+    {
+        this.Stop();
     }
 
     @Override
     public void Dispose() {
         timer.cancel();
         logger.info("TimerTask cancelled");
+        commandTimeoutTimer.cancel();
+        logger.info("commandTimeoutTimer cancelled");
+
         try {
             Thread.sleep(30000);
         } catch (InterruptedException e) {
@@ -134,18 +149,31 @@ public class ServerManager implements IPlugin {
                                 return;
                             }
 
+                            logger.info("Starting command timeout timer for 5 sec" );
+                            commandTimeoutTimer = new Timer(false);
+                            commandTimeoutTimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    handleBmsNotResponsing(s, ff);
+                                    logger.info("Canceling command timeout timer" );
+                                    commandTimeoutTimer.cancel();
+                                    return;
+                                }
+                            },COMMAND_TIMEOUT_SECONDS*1000);
+
                             logger.info("Sending " + finalCmd);
 
                             String result = commPort.sendReceive(finalCmd);
 
                             logger.info("Received " + result);
 
+                            logger.info("Canceling command timeout timer" );
+                            commandTimeoutTimer.cancel();
+                            commandTimeoutTimer.purge();
+
                             if(StringUtils.isEmpty(result))
                             {
-                                logger.warn("Bms " + s + " not responding");
-                                BmsNonResponsive msg = new BmsNonResponsive();
-                                msg.BmsAddress = ff.Address;
-                                publishBmsNonresponsiceAsync(msg);
+                                handleBmsNotResponsing(s, ff);
                                 return;
                             }
 
@@ -186,6 +214,14 @@ public class ServerManager implements IPlugin {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    private void handleBmsNotResponsing(String address, FrameFormat ff) {
+        logger.warn("Bms " + address + " not responding");
+        BmsNonResponsive msg = new BmsNonResponsive();
+        msg.BmsAddress = ff.Address;
+        publishBmsNonresponsiceAsync(msg);
+        return;
     }
 
 //    private void completeTask() {

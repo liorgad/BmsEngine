@@ -17,7 +17,7 @@
   "ClusterUpdateTimeInSeconds" : 5,
   "ClusterUpdateDelayTimeInSeconds" : 10,
   "HttpServerListenPort" : 8080,
-  "HttpServerListenIp" : "192.168.10.41",
+  "HttpServerListenIp" : "localhost",
   "DashboardSamplingTimeInMilliSeconds" : 2000,
   "DashboardSamplingDelayInMilliSeconds" : 2000
 }
