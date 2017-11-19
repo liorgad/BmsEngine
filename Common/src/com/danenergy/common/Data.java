@@ -7,6 +7,7 @@ import com.danenergy.common.dataObjects.Parallel;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -198,7 +199,21 @@ public class Data implements Serializable
         {
             try
             {
-                br = new BufferedReader(new FileReader("resources/data.json"));
+                String s = System.getProperty("os.name");
+                if(s.toLowerCase().contains("windows"))
+                {
+                    br = new BufferedReader(new FileReader("resources/data.json"));
+                }
+                else
+                {
+                    String sysEnvStr = System.getenv("HOME");
+                    if(null== sysEnvStr || StringUtils.isEmpty(sysEnvStr))
+                    {
+                        sysEnvStr = "..";
+                    }
+                    br = new BufferedReader(new FileReader(sysEnvStr + "/BmsEngine2/resources/data.json"));
+                }
+
                 data = gson.fromJson(br,Data.class);
                 br.close();
 

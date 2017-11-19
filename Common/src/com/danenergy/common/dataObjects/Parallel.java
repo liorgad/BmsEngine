@@ -11,7 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 import java.io.Serializable;
@@ -21,7 +21,8 @@ import java.util.stream.Stream;
 
 public class Parallel extends BatteryBase implements Serializable {
     //logging
-    final static Logger logger = Logger.getLogger(Parallel.class);
+    //final static Logger logger = Logger.getLogger(Parallel.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
 
     @Inject
     Configuration config;
@@ -77,7 +78,7 @@ public class Parallel extends BatteryBase implements Serializable {
             int voltState = batteriesInParallel.stream().mapToInt(b -> b.getVoltageState()).reduce((v1, v2) -> v1 | v2).getAsInt();
             setVoltageState(voltState);
 
-            int statusChanged = 2 | tempState | voltState;
+            int statusChanged = chargeState | tempState | voltState;
 
             double currentThreashold = config.getCurrentThreashold();
 
@@ -104,19 +105,20 @@ public class Parallel extends BatteryBase implements Serializable {
                 }
                 setStatus(status);
 
+
                 int cStatNum = batteriesInParallel.stream()
-                        .mapToInt(b -> CState.fromInt(b.getChargeState()).getStatus())
+                        .mapToInt(b -> b.getStatusNum())
                         .max().getAsInt();
 
                 int tStatNum = batteriesInParallel.stream()
-                        .mapToInt(b -> TState.fromInt(b.getTemperatureState()).getStatus())
+                        .mapToInt(b -> b.getStatusNum())
                         .max().getAsInt();
 
                 int vStatNum = batteriesInParallel.stream()
-                        .mapToInt(b -> VState.fromInt(b.getVoltageState()).getStatus())
+                        .mapToInt(b -> b.getStatusNum())
                         .max().getAsInt();
 
-                int maxStat = Stream.of(cStatNum, tStatNum, vStatNum).max((o1, o2) -> Math.max(o1, o2)).get();
+                int maxStat = Stream.of(cStatNum,tStatNum,vStatNum).mapToInt(i -> i).max().getAsInt();
 
                 setStatusNum(maxStat);
 

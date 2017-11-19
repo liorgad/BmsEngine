@@ -13,24 +13,27 @@ import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Inject;
-import com.sun.glass.ui.CommonDialogs;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+
 
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+
+import static com.danenergy.common.protocol.CommandResponse.*;
+import static com.danenergy.common.protocol.Version.Version82;
 
 
 public class MainLogic {
 
     //logging
-    final static Logger logger = Logger.getLogger(MainLogic.class);
+    //final static Logger logger = Logger.getLogger(MainLogic.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
     final int SECOND_IN_MILLI = 1000;
 
-    Configuration configuration;
+    public Configuration configuration;
     Data sharedData;
     EventBus eventBus;
     EventQueue<String> fromBmsDataEvQ;
@@ -45,13 +48,13 @@ public class MainLogic {
         this.configuration = conf;
         this.sharedData = sharedData;
         this.plugins = plugins;
-
-
     }
 
     public void start()
     {
         try {
+
+
             executorService = Executors.newFixedThreadPool(10);
 
             fromBmsDataEvQ = new EventQueue<>( (s) ->
@@ -103,13 +106,9 @@ public class MainLogic {
         logger.info("MainLogic: stop");
 
         try {
-
-            eventBus.post(new StopServerManagerMessage());
-
             if (null != this.eventBus) {
                 this.eventBus.unregister(this);
             }
-
 
             if (null != this.fromBmsDataEvQ) {
                 this.fromBmsDataEvQ.stop();
@@ -126,12 +125,16 @@ public class MainLogic {
                 });
             }
 
+            logger.info("Stopping cluster update timer");
             if (null != this.clusterUpdateTimer) {
                 this.clusterUpdateTimer.cancel();
                 this.clusterUpdateTimer.purge();
             }
 
+            logger.info("Shutting down executorservice");
             executorService.shutdown();
+
+            logger.info("MainLogic stopped");
         }
         catch(Exception e)
         {
@@ -197,7 +200,7 @@ public class MainLogic {
     {
         try
         {
-            switch (CommandResponse.fromInt(frameFormat.Cmd))
+            switch (fromInt(frameFormat.Cmd))
             {
                 case RealTimeData:
                     RealtimeData rt = GenericParser.Parse(frameFormat.Data,RealtimeData.class);
@@ -266,6 +269,39 @@ public class MainLogic {
         batt.setStatusNum(3);
         batt.setStatus(addrAsStr);
         batt.setRtData(null);
+        updateCluster();
+        //this.clusterUpdateTimer.cancel();
+
+//        ExecutorService executor = Executors.newSingleThreadExecutor();
+//        executor.submit(() -> {
+//            handleBmsSendTimeout(null);
+//        });
+    }
+
+    @Subscribe
+    public void handleBmsSendTimeout(BmsSendTimeout msg)
+    {
+        stop();
+//        for (IPlugin plgn : plugins) {
+//            if(plgn instanceof ServerManager)
+//            {
+//                plgn.Stop();
+//                plgn.Start();
+//                eventBus.post(new StartServerManagerMessage());
+//
+//                int clusterUpdateTime = configuration.getClusterUpdateTimeInSeconds();
+//                int clusterDelay = configuration.getClusterUpdateDelayTimeInSeconds();
+//
+//                clusterUpdateTimer.scheduleAtFixedRate(new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        logger.info("ClusterUpdateTimer task started at:" + new Date());
+//                        updateCluster();
+//                        logger.info("ClusterUpdateTimer task finished at:" + new Date());
+//                    }
+//                }, SECOND_IN_MILLI * clusterDelay, clusterUpdateTime * SECOND_IN_MILLI);
+//            }
+//        }
     }
 
     private void getRequestFromSharedData(ClientRequest request) {

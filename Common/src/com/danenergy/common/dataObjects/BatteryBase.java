@@ -25,6 +25,9 @@ public abstract class BatteryBase {
     protected String status;
 
     @Expose
+    protected String statusDetails;
+
+    @Expose
     protected int statusNum =3;
 
     @Expose
@@ -121,4 +124,12 @@ public abstract class BatteryBase {
     }
 
     public abstract String getAsJson();
+
+    public String getStatusDetails() {
+        return statusDetails;
+    }
+
+    public void setStatusDetails(String statusDetails) {
+        this.statusDetails = statusDetails;
+    }
 }

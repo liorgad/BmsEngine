@@ -1,8 +1,9 @@
 package com.danenergy.common.protocol;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import com.danenergy.common.Utilities;
+
+import javax.rmi.CORBA.Util;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,4 +69,22 @@ public enum VState {
     public static VState fromInt(int value) {
         return Optional.ofNullable(map.get(value)).orElse(Unknown);
     }
+
+    public static List<VState> getStates(int value)
+    {
+        List<VState> states = new LinkedList<>();
+        VState state = fromInt(value);
+        if(state.equals(Unknown))
+        {
+            List<Integer> values = Utilities.extractFlags(value);
+            values.forEach( v -> states.add(fromInt(v)));
+        }
+        else
+        {
+            states.add(state);
+        }
+
+        return states;
+    }
+
 }

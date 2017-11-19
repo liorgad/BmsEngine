@@ -11,7 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.util.List;
@@ -20,7 +20,8 @@ import java.util.stream.Stream;
 public class Cluster extends BatteryBase implements Serializable {
 
     //logging
-    final static Logger logger = Logger.getLogger(Cluster.class);
+    //final static Logger logger = Logger.getLogger(Cluster.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
 
     @Inject
     Configuration config;
@@ -102,18 +103,18 @@ public class Cluster extends BatteryBase implements Serializable {
             setStatus(status);
 
             int cStatNum = parallelGroups.stream()
-                    .mapToInt(b -> CState.fromInt(b.getChargeState()).getStatus())
+                    .mapToInt(b -> b.getStatusNum())
                     .max().getAsInt();
 
             int tStatNum = parallelGroups.stream()
-                    .mapToInt(b -> TState.fromInt(b.getTemperatureState()).getStatus())
+                    .mapToInt(b -> b.getStatusNum())
                     .max().getAsInt();
 
             int vStatNum = parallelGroups.stream()
-                    .mapToInt(b -> VState.fromInt(b.getVoltageState()).getStatus())
+                    .mapToInt(b -> b.getStatusNum())
                     .max().getAsInt();
 
-            int maxStat = Stream.of(cStatNum, tStatNum, vStatNum).max((o1,o2) -> Math.max(o1,o2)).get();
+            int maxStat = Stream.of(cStatNum,tStatNum,vStatNum).mapToInt(i -> i).max().getAsInt();
 
             setStatusNum(maxStat);
         }

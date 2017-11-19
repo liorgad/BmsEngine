@@ -20,4 +20,9 @@ public class DashboardViewModel implements IPlugin{
     public void Dispose() {
 
     }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
+    }
 }

@@ -1,22 +1,19 @@
 package com.danenergy.communications;
 
 import com.danenergy.HttpServer;
-import com.danenergy.common.ICommPort;
 import com.danenergy.common.IPlugin;
 import com.google.common.eventbus.EventBus;
-import fi.iki.elonen.NanoHTTPD;
-import org.apache.log4j.Logger;
+//import fi.iki.elonen.NanoHTTPD;
+//import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Lior Gad on 3/20/2017.
  */
 public class ClientsManager implements IPlugin{
     //logging
-    final static Logger logger = Logger.getLogger(ClientsManager.class);
+    //final static Logger logger = Logger.getLogger(ClientsManager.class);
 
     EventBus eventBus;
     //Map<String,HttpServer> clientsMap;
@@ -32,19 +29,24 @@ public class ClientsManager implements IPlugin{
 
     @Override
     public void Start() {
-        logger.info("ClientManager started");
+        //logger.info("ClientManager started");
         //server.Start();
     }
 
     @Override
     public void Stop() {
-        logger.info("ClientManager stopped");
+        //logger.info("ClientManager stopped");
     }
 
     @Override
     public void Dispose() {
-        logger.info("ClientManager disposeed");
+        //logger.info("ClientManager disposed");
 
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 
 //    public void AddClient(String clientUid,ICommPort commPort){

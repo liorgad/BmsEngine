@@ -1,28 +1,33 @@
 package com.danenergy;
 
+import com.danenergy.common.ArrayUtils;
 import com.danenergy.common.Configuration;
 import com.danenergy.common.ICommPort;
 import com.danenergy.common.ResourcesGuiceModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sun.deploy.util.StringUtils;
 import gnu.io.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+
 import static java.nio.charset.StandardCharsets.*;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 
-
-public class SerialComm implements ICommPort, SerialPortEventListener{
+public class SerialComm implements ICommPort{
 
     //logging
-    final static Logger logger = Logger.getLogger(SerialComm.class);
+    //final static Logger logger = Logger.getLogger(SerialComm.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
 
     private final int TIMEOUT = 3000;
     private Configuration configuration;
@@ -31,6 +36,8 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
     public InputStream input;
     public OutputStream output;
     private boolean isOpen =false;
+
+    Semaphore sendSignal;
 
     @Override
     public boolean isOpen() {
@@ -44,9 +51,9 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
         try
         {
             if (serialPort != null) {
-                serialPort.close();
                 input.close();
                 output.close();
+                serialPort.close();
                 isOpen = false;
                 String logText = "Disconnected.";
                 logger.info(logText);
@@ -67,12 +74,19 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
 
     @Override
     public void initializePort(String portName) {
-
-
         try {
+            int baudrate = 9600;
+            int dataBits =SerialPort.DATABITS_8;
+            int stopbitsType =SerialPort.STOPBITS_1;
+            int parityType =SerialPort.PARITY_NONE;
+
             if(null == portName)
             {
                 portName = this.configuration.getPortName();
+                baudrate = this.configuration.getBaudRate();
+                dataBits = this.configuration.getDataBits();
+                stopbitsType = this.configuration.getStopBitsType();
+                parityType = this.configuration.getParityType();
             }
             Enumeration<?> enumComm2 = CommPortIdentifier.getPortIdentifiers();///Search all ports USB
             CommPortIdentifier currPortId=null;
@@ -100,23 +114,21 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
 //                    SerialPort.DATABITS_8,
 //                    SerialPort.STOPBITS_1,
 //                    SerialPort.PARITY_NONE);
+            serialPort.enableReceiveTimeout(1000);
 
-            serialPort.setSerialPortParams(this.configuration.getBaudRate(),
-                    this.configuration.getDataBits(),
-                    this.configuration.getStopBitsType(),
-                    this.configuration.getParityType());
+            serialPort.setSerialPortParams(baudrate,dataBits,stopbitsType,parityType);
 
             //serialPort.addEventListener(this);
             //serialPort.notifyOnDataAvailable(true);
 
             initIOStream();
         }
-        catch (PortInUseException e)
-        {
-            String logText = portName + " is in use. (" + e.toString() + ")";
-
-            logger.error(logText,e);
-        }
+//        catch (PortInUseException e)
+//        {
+//            String logText = portName + " is in use. (" + e.toString() + ")";
+//
+//            logger.error(logText,e);
+//        }
         catch (Exception e)
         {
             String logText = "Failed to open " + portName + "(" + e.toString() + ")";
@@ -124,11 +136,12 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
         }
     }
 
+    @Override
     public void initializePort(String portName,int baudrate,int databits,int stopbits,int paritybits) {
 
 
         try {
-            if(null == portName)
+            if(null == portName || portName.isEmpty())
             {
                 portName = this.configuration.getPortName();
             }
@@ -152,6 +165,8 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
             //the method below returns an object of type CommPort
             //the CommPort object can be casted to a SerialPort object
             serialPort = (SerialPort) currPortId.open("BmsEngine",TIMEOUT);
+
+            serialPort.enableReceiveTimeout(1000);
 
             System.out.println("connected to " + currPortId.getName());
             // set port parameters
@@ -170,12 +185,12 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
 
             initIOStream();
         }
-        catch (PortInUseException e)
-        {
-            String logText = portName + " is in use. (" + e.toString() + ")";
-
-            logger.error(logText,e);
-        }
+//        catch (PortInUseException e)
+//        {
+//            String logText = portName + " is in use. (" + e.toString() + ")";
+//
+//            logger.error(logText,e);
+//        }
         catch (Exception e)
         {
             String logText = "Failed to open " + portName + "(" + e.toString() + ")";
@@ -286,6 +301,31 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
         return null;
     }
 
+    public byte[] readBytes()
+    {
+        try
+        {
+            byte[] buffer = new byte[250];
+            int bytesRead  = input.read(buffer);
+
+            byte[] resultBuffer = new byte[bytesRead];
+            for(int i=0 ; i < bytesRead ; i++)
+            {
+                resultBuffer[i] = buffer[i];
+            }
+
+            logger.info("Read from serial : "+bytesRead);
+            return  resultBuffer;
+        }
+        catch (Exception e)
+        {
+            String logText = "Failed to read data. (" + e.toString() + ")";
+            logger.error(logText,e);
+        }
+
+        return null;
+    }
+
 
 
     @Override
@@ -316,6 +356,69 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
     }
 
     @Override
+    public byte[] sendReceive(byte[] data,int waitTimeMilliSec)
+    {
+        try {
+            if(isOpen)
+            {
+                sendSignal.acquire();
+                sendWrite(data);
+                long sleepTime = 0;
+                if(-1 == waitTimeMilliSec)
+                {
+                    sleepTime = 250;
+                }
+                else {
+                    sleepTime = waitTimeMilliSec;
+                }
+
+                Thread.sleep(sleepTime);
+
+                byte[] result=readBytes();
+                sendSignal.release();
+                return result;
+            }
+        }
+        catch (Exception e)
+        {
+            logger.error("sendReceive Error",e);
+
+        }
+        return null;
+    }
+
+    @Override
+    public byte[] sendReceive(byte[] data)
+    {
+        try {
+            if(isOpen)
+            {
+                sendSignal.acquire();
+                sendWrite(data);
+                long sleepTime = 0;
+                if(null == this.configuration)
+                {
+                    sleepTime = 250;
+                }
+                else {
+                    sleepTime = this.configuration.getWaitTimePeriodBetweenCommandSendMilliSec();
+                }
+
+                Thread.sleep(sleepTime);
+                byte[] result = readBytes();
+                sendSignal.release();
+                return result;
+            }
+        }
+        catch (Exception e)
+        {
+            logger.error("sendReceive Error",e);
+
+        }
+        return null;
+    }
+
+    @Override
     public void sendWrite(String data) {
         try
         {
@@ -332,9 +435,25 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
     }
 
     @Override
+    public void sendWrite(byte[] bytes)
+    {
+        try
+        {
+            output.write(bytes);
+            output.flush();
+
+            logger.info("Sent to serial : " + new String(bytes));
+        }
+        catch(Exception e)
+        {
+            String logText = "Failed to read data. (" + e.toString() + ")";
+            logger.error(logText,e);
+        }    }
+
+    @Override
     public String[] getAvailablePorts() {
         Enumeration<?> enumComm = CommPortIdentifier.getPortIdentifiers();///Search all ports USB
-        System.out.println("Loadding ports...");
+        System.out.println("Loading ports...");
 
         List<String> ports= new LinkedList<>();
         //First, Find an instance of serial port as set in PORT_NAMES.
@@ -364,11 +483,16 @@ public class SerialComm implements ICommPort, SerialPortEventListener{
     {
         this.configuration = config;
 
+        this.sendSignal = new Semaphore(1);
+
         logger.info("SerialComm loaded");
+
+
     }
 
     public SerialComm()
     {
+        this.sendSignal = new Semaphore(1);
         logger.info("SerialComm loaded");
     }
 

@@ -5,17 +5,23 @@ import com.danenergy.common.protocol.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 public class Battery extends  BatteryBase implements Serializable{
 
     //logging
-    final static Logger logger = Logger.getLogger(Battery.class);
+    //final static Logger logger = Logger.getLogger(Battery.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
 
     @Expose
     RealtimeData rtData;
@@ -113,12 +119,35 @@ public class Battery extends  BatteryBase implements Serializable{
         return jsonInString;
     }
 
-    private void calculateStatus(double current, int statusChanged, double currentThreashold) {
+    public void calculateStatus(double current, int statusChanged, double currentThreashold) {
         if (statusChanged > 0)
         {
-            int maxStat = Stream.of(chargeState, temperatureState, voltageState).max((o1,o2) -> Math.max(o1,o2)).get();
+            List<VState> vStates = VState.getStates(getVoltageState());
+            List<CState> cStates = CState.getStates(getChargeState());
+            List<TState> tStates = TState.getStates(getTemperatureState());
+
+            int vStatusNum = vStates.stream().mapToInt( vs -> vs.getStatus()).max().getAsInt();
+            int cStatusNum = cStates.stream().mapToInt( cs -> cs.getStatus()).max().getAsInt();
+            int tStatusNum = tStates.stream().mapToInt( ts -> ts.getStatus()).max().getAsInt();
+
+            int maxStat = Stream.of(vStatusNum,cStatusNum,tStatusNum).mapToInt(i -> i).max().getAsInt();
 
             setStatusNum(maxStat);
+
+            String vStatusStr = vStates.stream().
+                    map(vs -> vs.getDescription()).
+                    collect(Collectors.joining(", "));
+
+            String cStatusStr = cStates.stream().
+                    map(cs -> cs.getDescription()).
+                    collect(Collectors.joining(", "));
+
+            String tStatusStr = tStates.stream().
+                    map(ts -> ts.getDescription()).
+                    collect(Collectors.joining(", "));
+
+            String statusStr = String.format("%s,%s,%s,%s",Integer.toString(address),vStatusStr,cStatusStr,tStatusStr);
+            setStatusDetails(statusStr);
             setStatus(Integer.toString(address));
         }
         else if (current > 0 && Math.abs(current) > currentThreashold)

@@ -1,8 +1,8 @@
 package com.danenergy.common.protocol;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import com.danenergy.common.Utilities;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -71,5 +71,22 @@ public enum TState {
 
     public static TState fromInt(int value) {
         return Optional.ofNullable(map.get(value)).orElse(Unknown);
+    }
+
+    public static List<TState> getStates(int value)
+    {
+        List<TState> states = new LinkedList<>();
+        TState state = fromInt(value);
+        if(state.equals(Unknown))
+        {
+            List<Integer> values = Utilities.extractFlags(value);
+            values.forEach( v -> states.add(fromInt(v)));
+        }
+        else
+        {
+            states.add(state);
+        }
+
+        return states;
     }
 }

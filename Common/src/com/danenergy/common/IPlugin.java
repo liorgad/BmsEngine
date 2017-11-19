@@ -7,4 +7,5 @@ public interface IPlugin {
     void Start();
     public void Stop();
     public void Dispose();
+    public String getName();
 }

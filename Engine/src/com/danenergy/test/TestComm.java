@@ -32,6 +32,11 @@ public class TestComm implements ICommPort {
     }
 
     @Override
+    public void initializePort(String portName, int baudrate, int databits, int stopbits, int paritybits) {
+
+    }
+
+    @Override
     public void open() {
 
     }
@@ -72,4 +77,19 @@ public class TestComm implements ICommPort {
     public String[] getAvailablePorts() {
         return new String[]{"Com1"};
     }
+
+    @Override
+    public byte[] sendReceive(byte[] data){return null;}
+
+    @Override
+    public byte[] sendReceive(byte[] data, int waitTimeMilliSec) {
+        return new byte[0];
+    }
+
+    @Override
+    public void sendWrite(byte[] data) {
+
+    }
+
+
 }

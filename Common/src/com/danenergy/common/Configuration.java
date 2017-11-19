@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Singleton;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -88,6 +89,10 @@ public class Configuration implements Serializable
     @SerializedName("ActivateSamplingTimer")
     @Expose
     private boolean activateSamplingTimer;
+
+    @SerializedName("Key")
+    @Expose
+    private String key;
 
 
     /**
@@ -353,7 +358,22 @@ public class Configuration implements Serializable
 
         try
         {
-            br = new BufferedReader(new FileReader("resources/configuration.json"));
+            String s = System.getProperty("os.name");
+            if(s.toLowerCase().contains("windows"))
+                {
+                br = new BufferedReader(new FileReader("resources/configuration.json"));
+            }
+            else
+            {
+                String sysEnvStr = System.getenv("HOME");
+                if(null== sysEnvStr || StringUtils.isEmpty(sysEnvStr))
+                {
+                    sysEnvStr = "..";
+                }
+                br = new BufferedReader(new FileReader(sysEnvStr + "/BmsEngine2/resources/configuration.json"));br = new BufferedReader(new FileReader(sysEnvStr + "/BmsEngine2/resources/configuration.json"));
+
+            }
+
             conf = gson.fromJson(br,Configuration.class);
             br.close();
         }
@@ -387,4 +407,11 @@ public class Configuration implements Serializable
         return new EqualsBuilder().append(portName, rhs.portName).append(baudRate, rhs.baudRate).append(parityType, rhs.parityType).append(dataBits, rhs.dataBits).append(stopBitsType, rhs.stopBitsType).append(handShakeType, rhs.handShakeType).append(readTimeout, rhs.readTimeout).append(writeTimeout, rhs.writeTimeout).append(samplingTimerIntervalMilisec, rhs.samplingTimerIntervalMilisec).append(voltageDifferenceThreshold, rhs.voltageDifferenceThreshold).append(waitTimePeriodBetweenCommandSendMilliSec, rhs.waitTimePeriodBetweenCommandSendMilliSec).append(currentThreashold, rhs.currentThreashold).isEquals();
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
 }

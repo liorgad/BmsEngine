@@ -2,10 +2,15 @@ package com.danenergy.common.parser;
 
 import com.danenergy.common.Pair;
 import com.danenergy.common.ParserDefinition;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.*;
 
 /**
@@ -14,7 +19,8 @@ import java.util.*;
 
 public class GenericParser{
     //logging
-    final static Logger logger = Logger.getLogger(GenericParser.class);
+    //final static Logger logger = Logger.getLogger(GenericParser.class);
+    final static Logger logger = org.apache.logging.log4j.LogManager.getLogger();
 
     public static Map<String,List<Pair<String, ParserDefinition>>> typeMap = new HashMap<>(0);
 
@@ -86,12 +92,87 @@ public class GenericParser{
         return null;
     }
 
+    public static <T extends Object> T ParseFromBytes(byte[] data, Class<T> type) {
+        try {
+            if (!typeMap.containsKey(type.getName())) {
+
+                typeMap.put(type.getName(),ExtractAndOrderFields(type));
+            }
+
+            List<Pair<String, ParserDefinition>> orderedList = typeMap.get(type.getName());
+
+//            for (Pair<String, ParserDefinition> p : orderedList) {
+//                logger.info(p.getKey() + " : " + p.getValue().Index() + "," + p.getValue().BytesLength());
+//            }
+
+            Map<String, byte[]> map = ParseBytes(data, orderedList);
+
+            T newObject = type.newInstance();
+
+            for (Pair<String, ParserDefinition> p : orderedList) {
+                Field objectField = type.getDeclaredField(p.getKey());
+
+                SetObjectBytes(newObject, objectField, p.getValue(), map);
+            }
+
+            return newObject;
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+
+        return null;
+    }
+
+    private static Map<String, byte[]> ParseBytes(byte[] data, List<Pair<String, ParserDefinition>> orderedList) {
+        int index = 0;
+        int totalKnownLength = orderedList.stream().
+                filter(p -> p.getValue().BytesLength() != 0).
+                mapToInt(p -> p.getValue().BytesLength()).sum();
+
+
+        Map<String, byte[]> fieldToBytesMap = new HashMap<>();
+
+        for (Pair<String, ParserDefinition> pair : orderedList) {
+
+            int fieldLength = pair.getValue().BytesLength();
+
+            if(fieldLength == 0 && StringUtils.isNotEmpty(pair.getValue().RelatedFieldLength()))
+            {
+                String lengthField = pair.getValue().RelatedFieldLength();
+
+                byte[] fieldLengthBytes = fieldToBytesMap.get(lengthField);
+
+                ByteBuffer wrapped = ByteBuffer.wrap(fieldLengthBytes); // big-endian by default
+
+                switch (fieldLengthBytes.length)
+                {
+                    case 1:
+                        fieldLength = wrapped.get();
+                        break;
+                    case 2:
+                        fieldLength = wrapped.getShort();
+                        break;
+                    case 4:
+                        fieldLength = wrapped.getInt();
+                        break;
+                    default:
+                        fieldLength = wrapped.getInt();
+                }
+            }
+
+            fieldToBytesMap.put(pair.getKey(), ArrayUtils.subarray(data, index, index + fieldLength));// ArrayUtils.subarray(data, index, index + fieldLength));
+
+            index += fieldLength;
+
+        }
+        return fieldToBytesMap;
+    }
+
     private static Map<String, String> ParseASCIIHex(String data, List<Pair<String, ParserDefinition>> orderedList) {
         int index = 0;
         int totalKnownLength = orderedList.stream().
                 filter(p -> p.getValue().ASCIILength() != 0).
                 mapToInt(p -> p.getValue().ASCIILength()).sum();
-
 
         Map<String, String> fieldToBytesMap = new HashMap<>();
 
@@ -212,6 +293,106 @@ public class GenericParser{
         }
 
         return null;
+    }
+
+    public static <T extends Object> byte[] BuildToBytes(T obj, Class type,String[] fieldNamesToDeffer) {
+        try {
+            if (!typeMap.containsKey(type.getName())) {
+
+                typeMap.put(type.getName(),ExtractAndOrderFields(type));
+            }
+
+            HashMap<String, Boolean> defferDictionary = null;
+            if(fieldNamesToDeffer != null) {
+                defferDictionary = new HashMap<>(fieldNamesToDeffer.length);
+
+                for (String name : fieldNamesToDeffer) {
+                    defferDictionary.put(name, true);
+                }
+            }
+            List<Pair<String, ParserDefinition>> orderedList = typeMap.get(type.getName());
+
+            List<byte[]> resultList = new LinkedList<byte[]>();
+
+            for (Pair<String, ParserDefinition> item : orderedList)
+            {
+                Field objectField = type.getDeclaredField(item.getKey());
+
+                if(null != defferDictionary && defferDictionary.containsKey(objectField.getName()))
+                {
+                    continue;
+                }
+
+                Object val = objectField.get(obj);
+                Class fieldType = objectField.getType();
+
+                if (fieldType == Character.TYPE) {
+                    byte[] res = com.danenergy.common.ArrayUtils.toByteArray((char)val);
+                    resultList.add(res);
+                } else if (fieldType == Byte.TYPE) {
+                    byte[] res = new byte[]{(byte) val};
+                    resultList.add(res);
+                } else if (fieldType == Short.TYPE) {
+                    byte[] res = com.danenergy.common.ArrayUtils.toByteArray((short)val);
+                    resultList.add(res);
+                } else if (fieldType == Integer.TYPE) {
+                    byte[] res = com.danenergy.common.ArrayUtils.toByteArray((int)val);
+                    resultList.add(res);
+                } else if (fieldType == String.class) {
+                    byte[] res = ((String)val).getBytes();
+                    resultList.add(res);
+                } else if (fieldType == Long.TYPE) {
+                    byte[] res = com.danenergy.common.ArrayUtils.toByteArray((long) val);
+                    resultList.add(res);
+                } else if (fieldType == int[].class) {
+
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(((int[])val).length * 4);
+                    IntBuffer intBuffer = byteBuffer.asIntBuffer();
+                    intBuffer.put((int[])val);
+
+                    byte[] res =  byteBuffer.array();
+                    resultList.add(res);
+                } else if (fieldType == short[].class) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(((int[])val).length * 2);
+                    ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+                    shortBuffer.put((short[])val);
+                    byte[] res =  byteBuffer.array();
+                    resultList.add(res);
+                }
+            }
+
+            byte[] res = resultList.stream().reduce((s1, s2) -> ArrayUtils.addAll(s1, s2)).get();
+            return res;
+
+        } catch (Exception e) {
+//            logger.Error(e, "Error Building from object of type " + obj.GetType().Name);
+        }
+
+        return null;
+    }
+
+    private static <T extends Object> void SetObjectBytes(T newObject, Field objectField, ParserDefinition value, Map<String, byte[]> map) throws IllegalAccessException {
+
+        byte[] arr = map.get(objectField.getName());
+        ByteBuffer wrapped = ByteBuffer.wrap(arr); // big-endian by default
+
+        if (objectField.getType() == (Byte.TYPE)) {
+            objectField.setByte(newObject, wrapped.get());
+        } else if (objectField.getType() == (Short.TYPE)) {
+            objectField.setShort(newObject, wrapped.getShort());
+        } else if (objectField.getType() == (Integer.TYPE)) {
+            objectField.setInt(newObject, wrapped.getInt());
+        } else if (objectField.getType() == (Long.TYPE)) {
+            objectField.setLong(newObject, wrapped.getLong());
+        } else if (objectField.getType() == (String.class)) {
+            objectField.set(newObject, map.get(objectField.getName()));
+        } else if (objectField.getType().isArray())
+        {
+            if(objectField.getType() == (byte[].class))
+            {
+                objectField.set(newObject,map.get(objectField.getName()));
+            }
+        }
     }
 }
 

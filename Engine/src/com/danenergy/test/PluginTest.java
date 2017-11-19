@@ -22,4 +22,9 @@ public class PluginTest implements IPlugin {
         System.out.println("PluginTest Dispose");
 
     }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
+    }
 }

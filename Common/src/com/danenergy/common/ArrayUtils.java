@@ -1,8 +1,7 @@
 package com.danenergy.common;
 
-/**
- * Created by dev on 03/04/2017.
- */
+import java.nio.ByteBuffer;
+
 public class ArrayUtils {
     public static int[] ConvertToIntArray(short[] arr)
     {
@@ -20,5 +19,21 @@ public class ArrayUtils {
         }
 
         return resultArr;
+    }
+
+    public static byte[] toByteArray(int value) {
+        return  ByteBuffer.allocate(4).putInt(value).array();
+    }
+
+    public static byte[] toByteArray(short value) {
+        return  ByteBuffer.allocate(2).putShort(value).array();
+    }
+
+    public static byte[] toByteArray(long value) {
+        return  ByteBuffer.allocate(8).putLong(value).array();
+    }
+
+    public static byte[] toByteArray(char value) {
+        return  ByteBuffer.allocate(2).putChar(value).array();
     }
 }

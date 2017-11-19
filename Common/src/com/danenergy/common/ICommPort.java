@@ -11,8 +11,12 @@ public interface ICommPort
     void close();
     void dispose();
     void initializePort(String portName);
+    void initializePort(String portName,int baudrate,int databits,int stopbits,int paritybits);
     void open();
     String sendReceive(String data);
     void sendWrite(String data);
     String[] getAvailablePorts();
+    void sendWrite(byte[] bytes);
+    byte[] sendReceive(byte[] data);
+    public byte[] sendReceive(byte[] data,int waitTimeMilliSec);
 }

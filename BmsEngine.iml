@@ -10,7 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" name="one.util:streamex:0.6.5" level="project" />
-    <orderEntry type="library" name="org.rxtx:rxtx:2.1.7" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.0" level="project" />
     <orderEntry type="library" name="javax.validation:validation-api:1.1.0.Final" level="project" />
     <orderEntry type="library" name="com.google.inject:guice:4.0" level="project" />
@@ -22,8 +21,10 @@
     <orderEntry type="module" module-name="Common" />
     <orderEntry type="module" module-name="HttpServer" />
     <orderEntry type="library" name="org.nanohttpd:nanohttpd:2.3.1" level="project" />
-    <orderEntry type="library" name="log4j:log4j:1.2.17" level="project" />
     <orderEntry type="module" module-name="SerialComm" />
     <orderEntry type="library" name="com.google.http-client:google-http-client:1.22.0" level="project" />
+    <orderEntry type="library" name="com.google.http-client:google-http-client-jackson2:1.22.0" level="project" />
+    <orderEntry type="library" name="org.apache.logging.log4j:log4j-api:2.8.2" level="project" />
+    <orderEntry type="library" name="org.apache.logging.log4j:log4j-core:2.8.2" level="project" />
   </component>
 </module>
